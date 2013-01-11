@@ -5,7 +5,17 @@ import org.jetbrains.annotations.NotNull;
 
 public class AbiCheckerBean {
     @NotNull
+    public String getProjectNameKey() {
+        return AbiCheckerConstants.UI_PROJECT_NAME;
+    }
+
+    @NotNull
+    public String getBuildTypeKey() {
+        return AbiCheckerConstants.UI_BUILD_TYPE;
+    }
+
+    @NotNull
     public String getReferenceTagKey() {
-        return AbiCheckerConstants.UI_TAG;
+        return AbiCheckerConstants.UI_REFERENCE_TAG;
     }
 }

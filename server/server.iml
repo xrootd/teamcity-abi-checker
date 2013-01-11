@@ -2,7 +2,11 @@
 <module type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="Spring" name="Spring">
-      <configuration />
+      <configuration>
+        <fileset id="fileset1" name="XML Application Context" removed="false">
+          <file>file://$MODULE_DIR$/src/META-INF/build-server-plugin-abi-checker.xml</file>
+        </fileset>
+      </configuration>
     </facet>
   </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
@@ -157,6 +161,43 @@
         </CLASSES>
         <JAVADOC />
         <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="common" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$idea.home$/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$idea.home$/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$idea.home$/lib" recursive="false" />
+        <jarDirectory url="file://$idea.home$/lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$TeamCityDistribution$/devPackage" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$TeamCityDistribution$/devPackage" />
+        </SOURCES>
+        <jarDirectory url="file://$TeamCityDistribution$/devPackage" recursive="false" />
+        <jarDirectory url="file://$TeamCityDistribution$/devPackage" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$TeamCityDistribution$/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$TeamCityDistribution$/lib" recursive="false" />
       </library>
     </orderEntry>
   </component>

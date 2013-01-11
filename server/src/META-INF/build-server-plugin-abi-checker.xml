@@ -12,5 +12,6 @@
   <bean id="abi-checkerController" class="ch.cern.dss.teamcity.server.Controller"/>
   <bean id="abi-checkerListener" class="ch.cern.dss.teamcity.server.ServerListener"/>
   <bean id="AbiCheckerRunType" class="ch.cern.dss.teamcity.server.AbiCheckerRunType"/>
+  <bean id="AbiCheckerBean" class="ch.cern.dss.teamcity.server.AbiCheckerBean"/>
 
 </beans>

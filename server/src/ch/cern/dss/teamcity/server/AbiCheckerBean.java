@@ -20,7 +20,12 @@ public class AbiCheckerBean {
     }
 
     @NotNull
-    public String getCustomArtifactPath() {
+    public String getAbiCheckerExecutablePathKey() {
+        return AbiCheckerConstants.UI_ABI_CHECKER_EXECUTABLE_PATH;
+    }
+
+    @NotNull
+    public String getCustomArtifactPathKey() {
         return AbiCheckerConstants.UI_ARTIFACT_PATH;
     }
 }

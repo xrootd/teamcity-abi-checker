@@ -20,6 +20,11 @@ public class AbiCheckerPropertiesProcessor implements PropertiesProcessor {
                     "Cannot reference a project with no tagged builds"));
         }
 
+        if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.UI_ABI_CHECKER_EXECUTABLE_PATH))) {
+            result.add(new InvalidProperty(AbiCheckerConstants.UI_ABI_CHECKER_EXECUTABLE_PATH,
+                    "Path to abi-compliance-checker executable must be specified "));
+        }
+
         return result;
     }
 }

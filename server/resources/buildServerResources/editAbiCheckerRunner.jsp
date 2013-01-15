@@ -83,10 +83,18 @@ ${teamcityPluginResourcesPath}
     </td>
 </tr>
 <tr>
-    <th><label for="${abiCheckerBean.customArtifactPath}">Artifact path (optional): </label></th>
+    <th><label for="${abiCheckerBean.customArtifactPathKey}">Executable path: </label></th>
     <td>
-        <props:textProperty name="${abiCheckerBean.customArtifactPath}" className="longField" maxlength="256"/>
+        <props:textProperty name="${abiCheckerBean.abiCheckerExecutablePathKey}" className="longField" maxlength="256"/>
+        <span class="error" id="error_${abiCheckerBean.abiCheckerExecutablePathKey}"></span>
+        <span class="smallNote">Specify the path to the <b>abi-compliance-checker</b> executable.</span>
+    </td>
+</tr>
+<tr>
+    <th><label for="${abiCheckerBean.customArtifactPathKey}">Artifact path (optional): </label></th>
+    <td>
+        <props:textProperty name="${abiCheckerBean.customArtifactPathKey}" className="longField" maxlength="256"/>
         <span class="smallNote">Enter this build type's artifact path, or leave blank to use the same path
-        as the reference.</span>
+        as the reference build type.</span>
     </td>
 </tr>

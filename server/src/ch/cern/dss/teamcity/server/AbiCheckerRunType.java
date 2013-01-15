@@ -76,6 +76,8 @@ public class AbiCheckerRunType extends RunType {
 
         sb.append("Reference build type: ").append(parameters.get(AbiCheckerConstants.UI_BUILD_TYPE)).append("\n");
         sb.append("Reference tag: ").append(parameters.get(AbiCheckerConstants.UI_REFERENCE_TAG)).append("\n");
+        sb.append("Executable path: ").append(
+                parameters.get(AbiCheckerConstants.UI_ABI_CHECKER_EXECUTABLE_PATH)).append("\n");
 
         if (!PropertiesUtil.isEmptyOrNull(parameters.get(AbiCheckerConstants.UI_ARTIFACT_PATH))) {
             sb.append("Artifact path: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_PATH)).append("\n");

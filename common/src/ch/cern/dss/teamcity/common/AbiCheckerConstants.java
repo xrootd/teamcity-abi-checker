@@ -31,4 +31,7 @@ public interface AbiCheckerConstants {
     @NotNull
     @NonNls
     String UI_ARTIFACT_PATH = TYPE + "-artifact-path";
+    @NotNull
+    @NonNls
+    String UI_ABI_CHECKER_EXECUTABLE_PATH = TYPE + "-executable-path";
 }

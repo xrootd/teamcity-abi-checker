@@ -4,7 +4,7 @@
   <info>
     <name>abi-checker</name>
     <display-name>abi-checker</display-name>
-    <version>SNAPSHOT-201301151637</version>
+    <version>SNAPSHOT-201301151742</version>
   </info>
   <deployment use-separate-classloader="false"/>
 </teamcity-plugin>

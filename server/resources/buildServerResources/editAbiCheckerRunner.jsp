@@ -9,9 +9,9 @@
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <c:set var="project" value="${buildForm.settingsBuildType.project}"/>
-
+${teamcityPluginResourcesPath}
 <bs:linkScript>
-    ${propertiesBean.properties[abiCheckerBean.JSLocationKey]}
+    ${teamcityPluginResourcesPath}/async-request.js
 </bs:linkScript>
 
 <tr>

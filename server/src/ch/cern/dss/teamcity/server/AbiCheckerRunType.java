@@ -57,7 +57,7 @@ public class AbiCheckerRunType extends RunType {
 
     @Override
     public PropertiesProcessor getRunnerPropertiesProcessor() {
-        return null;
+        return new AbiCheckerPropertiesProcessor();
     }
 
     @Override

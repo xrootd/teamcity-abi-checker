@@ -1,11 +1,25 @@
 package ch.cern.dss.teamcity.server;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jsalmon
- * Date: 1/15/13
- * Time: 3:39 PM
- * To change this template use File | Settings | File Templates.
- */
-public class AbiCheckerPropertiesProcessor {
+import ch.cern.dss.teamcity.common.AbiCheckerConstants;
+import jetbrains.buildServer.serverSide.InvalidProperty;
+import jetbrains.buildServer.serverSide.PropertiesProcessor;
+import jetbrains.buildServer.util.PropertiesUtil;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
+
+public class AbiCheckerPropertiesProcessor implements PropertiesProcessor {
+    @Override
+    public Collection<InvalidProperty> process(Map<String, String> properties) {
+        final Collection<InvalidProperty> result = new ArrayList<InvalidProperty>();
+
+        if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.UI_REFERENCE_TAG))) {
+            result.add(new InvalidProperty(AbiCheckerConstants.UI_REFERENCE_TAG,
+                    "Cannot reference a project with no tagged builds"));
+        }
+
+        return result;
+    }
 }

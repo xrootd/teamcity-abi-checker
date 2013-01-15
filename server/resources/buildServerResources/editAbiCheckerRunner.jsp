@@ -15,7 +15,7 @@ ${teamcityPluginResourcesPath}
 </bs:linkScript>
 
 <tr>
-    <th><label for="${abiCheckerBean.buildTypeKey}">Build type: </label></th>
+    <th><label for="${abiCheckerBean.buildTypeKey}">Reference build type: </label></th>
     <td>
         <bs:refreshable containerId="abiCheckerComponent" pageUrl="${pageUrl}">
 

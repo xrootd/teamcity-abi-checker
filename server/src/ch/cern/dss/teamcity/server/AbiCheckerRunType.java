@@ -3,21 +3,14 @@ package ch.cern.dss.teamcity.server;
 
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.BuildTypeDescriptor;
-import jetbrains.buildServer.controllers.ActionErrors;
-import jetbrains.buildServer.controllers.StatefulObject;
-import jetbrains.buildServer.controllers.admin.projects.BuildTypeForm;
-import jetbrains.buildServer.controllers.admin.projects.EditRunTypeControllerExtension;
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.*;
-import jetbrains.buildServer.tags.TagsManager;
+import jetbrains.buildServer.util.PropertiesUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class AbiCheckerRunType extends RunType {
@@ -74,6 +67,20 @@ public class AbiCheckerRunType extends RunType {
     public Map<String, String> getDefaultRunnerProperties() {
         Map defaults = new HashMap<String, String>();
         return defaults;
+    }
+
+    @NotNull
+    @Override
+    public String describeParameters(@NotNull Map<String, String> parameters) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Reference build type: ").append(parameters.get(AbiCheckerConstants.UI_BUILD_TYPE)).append("\n");
+        sb.append("Reference tag: ").append(parameters.get(AbiCheckerConstants.UI_REFERENCE_TAG)).append("\n");
+
+        if (!PropertiesUtil.isEmptyOrNull(parameters.get(AbiCheckerConstants.UI_ARTIFACT_PATH))) {
+            sb.append("Artifact path: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_PATH)).append("\n");
+        }
+        return sb.toString();
     }
 
 }

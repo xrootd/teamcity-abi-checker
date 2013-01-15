@@ -9,8 +9,7 @@
                            http://www.springframework.org/schema/lang/spring-lang-2.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
        default-autowire="constructor">
 
-  <bean id="abi-checkerController" class="ch.cern.dss.teamcity.server.AsyncTagRequestController"/>
-  <bean id="abi-checkerListener" class="ch.cern.dss.teamcity.server.ServerListener"/>
+  <bean id="AsyncTagRequestController" class="ch.cern.dss.teamcity.server.AsyncTagRequestController"/>
   <bean id="AbiCheckerRunType" class="ch.cern.dss.teamcity.server.AbiCheckerRunType"/>
   <bean id="AbiCheckerBean" class="ch.cern.dss.teamcity.server.AbiCheckerBean"/>
 

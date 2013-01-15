@@ -1,6 +1,6 @@
 package ch.cern.dss.teamcity.agent;
 
-import ch.cern.dss.teamcity.common.Util;
+import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.agent.AgentLifeCycleAdapter;
 import jetbrains.buildServer.agent.AgentLifeCycleListener;
 import jetbrains.buildServer.agent.BuildAgent;
@@ -19,6 +19,6 @@ public class AgentListener extends AgentLifeCycleAdapter {
 
   @Override
   public void agentInitialized(@NotNull final BuildAgent agent) {
-    Loggers.AGENT.info("Plugin '" + Util.NAME + "'. is running.");
+    Loggers.AGENT.info("Plugin '" + AbiCheckerConstants.TYPE + "'. is running.");
   }
 }

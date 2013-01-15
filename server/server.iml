@@ -167,19 +167,6 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="file://$idea.home$/lib" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$idea.home$/lib" />
-        </SOURCES>
-        <jarDirectory url="file://$idea.home$/lib" recursive="false" />
-        <jarDirectory url="file://$idea.home$/lib" recursive="false" type="SOURCES" />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
           <root url="file://$TeamCityDistribution$/devPackage" />
         </CLASSES>
         <JAVADOC />
@@ -198,6 +185,15 @@
         <JAVADOC />
         <SOURCES />
         <jarDirectory url="file://$TeamCityDistribution$/lib" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$idea.home$/lib/jdom.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
       </library>
     </orderEntry>
   </component>

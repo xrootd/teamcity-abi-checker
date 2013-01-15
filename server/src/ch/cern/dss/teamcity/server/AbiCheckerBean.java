@@ -18,4 +18,9 @@ public class AbiCheckerBean {
     public String getReferenceTagKey() {
         return AbiCheckerConstants.UI_REFERENCE_TAG;
     }
+
+    @NotNull
+    public String getCustomArtifactPath() {
+        return AbiCheckerConstants.UI_ARTIFACT_PATH;
+    }
 }

@@ -21,11 +21,14 @@ public interface AbiCheckerConstants {
 
     @NotNull
     @NonNls
-    String UI_PROJECT_NAME = UI_PREFIX + "project-name-";
+    String UI_PROJECT_NAME = UI_PREFIX + "project-name";
     @NotNull
     @NonNls
-    String UI_BUILD_TYPE = UI_PREFIX + "build-type-";
+    String UI_BUILD_TYPE = UI_PREFIX + "build-type";
     @NotNull
     @NonNls
-    String UI_REFERENCE_TAG = UI_PREFIX + "reference-tag-";
+    String UI_REFERENCE_TAG = UI_PREFIX + "reference-tag";
+    @NotNull
+    @NonNls
+    String UI_ARTIFACT_PATH = TYPE + "-artifact-path";
 }

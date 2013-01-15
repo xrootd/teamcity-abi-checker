@@ -3,12 +3,19 @@ package ch.cern.dss.teamcity.server;
 
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.BuildTypeDescriptor;
+import jetbrains.buildServer.controllers.ActionErrors;
+import jetbrains.buildServer.controllers.StatefulObject;
+import jetbrains.buildServer.controllers.admin.projects.BuildTypeForm;
+import jetbrains.buildServer.controllers.admin.projects.EditRunTypeControllerExtension;
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.tags.TagsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
+import jetbrains.buildServer.web.openapi.WebControllerManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +28,16 @@ public class AbiCheckerRunType extends RunType {
 
     public AbiCheckerRunType(@NotNull final RunTypeRegistry runTypeRegistry,
                              @NotNull final PluginDescriptor pluginDescriptor,
-                             @NotNull final ProjectManager projectManager) {
+                             @NotNull final ProjectManager projectManager,
+                             @NotNull final WebControllerManager webControllerManager) {
         this.pluginDescriptor = pluginDescriptor;
         this.projectManager = projectManager;
         this.buildType = buildType;
         runTypeRegistry.registerRunType(this);
+
+        for (RunType r : runTypeRegistry.getRegisteredRunTypes()) {
+            Loggers.SERVER.info(r.getDisplayName());
+        }
     }
 
     @Override
@@ -60,24 +72,8 @@ public class AbiCheckerRunType extends RunType {
 
     @Override
     public Map<String, String> getDefaultRunnerProperties() {
-        Map<String, String> defaults = new HashMap<String, String>();
-
-        List<SProject> projectList = this.projectManager.getProjects();
-
-        for (SProject project : projectList) {
-            defaults.put(AbiCheckerConstants.UI_PROJECT_NAME + project.getName(), project.getName());
-
-            for (SBuildType buildType : project.getBuildTypes()) {
-                defaults.put(AbiCheckerConstants.UI_BUILD_TYPE + buildType.getName(), buildType.getName());
-
-                for (String tag : buildType.getTags()) {
-                    defaults.put(AbiCheckerConstants.UI_REFERENCE_TAG + tag, tag);
-                }
-            }
-        }
-
+        Map defaults = new HashMap<String, String>();
         return defaults;
     }
-
 
 }

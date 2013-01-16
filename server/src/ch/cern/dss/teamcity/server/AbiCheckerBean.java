@@ -25,7 +25,39 @@ public class AbiCheckerBean {
     }
 
     @NotNull
-    public String getCustomArtifactPathKey() {
-        return AbiCheckerConstants.UI_ARTIFACT_PATH;
+    public String getArtifactFilesKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_FILES;
     }
+
+    @NotNull
+    public String getArtifactTypeKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_TYPE;
+    }
+
+    @NotNull
+    public String getArtifactTypeRpmKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_TYPE_RPM;
+    }
+
+    @NotNull
+    public String getArtifactTypeArchiveKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_TYPE_ARCHIVE;
+    }
+
+    @NotNull
+    public String getArtifactTypeFolderKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_TYPE_FOLDER;
+    }
+
+    @NotNull
+    public String getArtifactHeaderPathKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_HEADER_PATH;
+    }
+
+    @NotNull
+    public String getArtifactLibraryPathKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_LIBRARY_PATH;
+    }
+
+
 }

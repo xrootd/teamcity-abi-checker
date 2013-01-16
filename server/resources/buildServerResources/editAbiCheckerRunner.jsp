@@ -9,10 +9,49 @@
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <c:set var="project" value="${buildForm.settingsBuildType.project}"/>
-${teamcityPluginResourcesPath}
-<bs:linkScript>
-    ${teamcityPluginResourcesPath}/async-request.js
-</bs:linkScript>
+<c:set var="onchange">
+    var TagHandler = {
+    requestTags: function () {
+    var buildType = jQuery('#${abiCheckerBean.buildTypeKey} option:selected').val();
+
+    BS.ajaxRequest('/requestTags.html', {
+    parameters: 'buildTypeId=' + buildType,
+    onComplete: function (transport) {
+    if (transport.responseXML) {
+    BS.XMLResponse.processErrors(transport.responseXML, {
+    onAbiCheckerProblemError: function (elem) {
+    alert(elem.firstChild.nodeValue);
+    }
+    });
+    TagHandler.fillTags(transport.responseText);
+    }
+    }
+    });
+    return false;
+    },
+
+    fillTags: function (tags) {
+    var xmlDoc = jQuery.parseXML(tags);
+    var xml = jQuery(xmlDoc);
+
+    jQuery('#${abiCheckerBean.referenceTagKey}').empty();
+
+    xml.find('tag').each(function () {
+    tag = jQuery(this).text()
+    option = '<option value=&quot;' + tag + '&quot;>' + tag + '</option>';
+    jQuery('#${abiCheckerBean.referenceTagKey}').append(option);
+    });
+
+    jQuery('#${abiCheckerBean.referenceTagKey} option:first-child').attr('selected', true);
+    }
+    };
+
+    jQuery(document).ready(function () {
+    TagHandler.requestTags();
+    });
+
+    return TagHandler.requestTags();
+</c:set>
 
 <tr>
     <th><label for="${abiCheckerBean.buildTypeKey}">Reference build type: </label></th>
@@ -20,57 +59,15 @@ ${teamcityPluginResourcesPath}
         <bs:refreshable containerId="abiCheckerComponent" pageUrl="${pageUrl}">
 
             <props:selectProperty name="${abiCheckerBean.buildTypeKey}"
-                                  onchange="return TagRequester.requestTags();">
+                                  onchange="${onchange}">
                 <c:forEach var="item" items="${project.buildTypes}">
-                    <props:option value="${item}"><c:out value="${item.name}"/></props:option>
+                    <props:option value="${item.id}"><c:out value="${item.name}"/></props:option>
                 </c:forEach>
             </props:selectProperty>
             <span class="error" id="error_${abiCheckerBean.buildTypeKey}"></span>
             <span class="smallNote">Select the build type which contains the artifacts you wish to check
             ABI compatibility with.</span>
 
-            <script>
-                jQuery(document).ready(function () {
-                    TagRequester.requestTags();
-                });
-
-                var TagRequester = {
-                    requestTags: function () {
-                        var buildType = jQuery("#${abiCheckerBean.buildTypeKey} option:selected").val();
-                        var buildTypeId = buildType.match(/\{id=(bt.*)\}/)[1];
-
-                        BS.ajaxRequest("/requestTags.html", {
-                            parameters: 'buildTypeId=' + buildTypeId,
-                            onComplete: function (transport) {
-                                if (transport.responseXML) {
-                                    BS.XMLResponse.processErrors(transport.responseXML, {
-                                        onAbiCheckerProblemError: function (elem) {
-                                            alert(elem);
-                                        }
-                                    });
-                                    TagRequester.fillTags(transport.responseText);
-                                }
-                            }
-                        });
-                        return false;
-                    },
-
-                    fillTags: function (tags) {
-                        var xmlDoc = jQuery.parseXML(tags);
-                        var xml = jQuery(xmlDoc);
-
-                        jQuery("#${abiCheckerBean.referenceTagKey}").empty();
-
-                        xml.find("tag").each(function () {
-                            tag = jQuery(this).text()
-                            option = "<option value='" + tag + "'>" + tag + "</option>";
-                            jQuery("#${abiCheckerBean.referenceTagKey}").append(option);
-                        });
-
-                        jQuery("#${abiCheckerBean.referenceTagKey} option:first-child").attr("selected", true);
-                    }
-                };
-            </script>
         </bs:refreshable>
     </td>
 </tr>
@@ -83,7 +80,7 @@ ${teamcityPluginResourcesPath}
     </td>
 </tr>
 <tr>
-    <th><label for="${abiCheckerBean.customArtifactPathKey}">Executable path: </label></th>
+    <th><label for="${abiCheckerBean.abiCheckerExecutablePathKey}">Executable path: </label></th>
     <td>
         <props:textProperty name="${abiCheckerBean.abiCheckerExecutablePathKey}" className="longField" maxlength="256"/>
         <span class="error" id="error_${abiCheckerBean.abiCheckerExecutablePathKey}"></span>
@@ -91,10 +88,53 @@ ${teamcityPluginResourcesPath}
     </td>
 </tr>
 <tr>
-    <th><label for="${abiCheckerBean.customArtifactPathKey}">Artifact path (optional): </label></th>
+    <th><label for="${abiCheckerBean.artifactFilesKey}">Artifact paths: </label></th>
     <td>
-        <props:textProperty name="${abiCheckerBean.customArtifactPathKey}" className="longField" maxlength="256"/>
-        <span class="smallNote">Enter this build type's artifact path, or leave blank to use the same path
-        as the reference build type.</span>
+        <props:multilineProperty name="${abiCheckerBean.artifactFilesKey}"
+                                 className="longField"
+                                 linkTitle="Type artifact files or wildcards"
+                                 cols="55" rows="5"
+                                 expanded="true"/>
+        <span class="error" id="error_${abiCheckerBean.artifactFilesKey}"></span>
+        <span class="smallNote">Enter the path to the artifacts which contain the source headers and
+        shared object libraries,<br/> separated by newlines. Wildcards accepted (e.g. x86_64/foo-*.rpm)</span>
+    </td>
+</tr>
+<tr>
+    <th><label>Artifact type:</label></th>
+    <td>
+        <props:radioButtonProperty name="${abiCheckerBean.artifactTypeKey}"
+                                   value="${abiCheckerBean.artifactTypeRpmKey}"
+                                   id="${abiCheckerBean.artifactTypeRpmKey}"/>
+        <label for="${abiCheckerBean.artifactTypeRpmKey}">RPM</label><br/>
+
+        <props:radioButtonProperty name="${abiCheckerBean.artifactTypeKey}"
+                                   value="${abiCheckerBean.artifactTypeArchiveKey}"
+                                   id="${abiCheckerBean.artifactTypeArchiveKey}"/>
+        <label for="${abiCheckerBean.artifactTypeArchiveKey}">Archive</label><br/>
+
+        <props:radioButtonProperty name="${abiCheckerBean.artifactTypeKey}"
+                                   value="${abiCheckerBean.artifactTypeFolderKey}"
+                                   id="${abiCheckerBean.artifactTypeFolderKey}"/>
+        <label for="${abiCheckerBean.artifactTypeFolderKey}">Folder</label><br/>
+        <span class="smallNote">Select which type of artifact this is.</span>
+    </td>
+</tr>
+<tr>
+    <th><label for="${abiCheckerBean.artifactHeaderPathKey}">Header path: </label></th>
+    <td>
+        <props:textProperty name="${abiCheckerBean.artifactHeaderPathKey}" className="longField" maxlength="256"/>
+        <span class="error" id="error_${abiCheckerBean.artifactHeaderPathKey}"></span>
+        <span class="smallNote">Specify the path <b>(inside the artifact)</b> where the header files are located
+        (e.g. /usr/include/foo/bar.h).</span>
+    </td>
+</tr>
+<tr>
+    <th><label for="${abiCheckerBean.artifactLibraryPathKey}">Shared library path: </label></th>
+    <td>
+        <props:textProperty name="${abiCheckerBean.artifactLibraryPathKey}" className="longField" maxlength="256"/>
+        <span class="error" id="error_${abiCheckerBean.artifactLibraryPathKey}"></span>
+        <span class="smallNote">Specify the path <b>(inside the artifact)</b> where the shared library files are
+        located (e.g. /usr/lib64/foo.so)</span>
     </td>
 </tr>

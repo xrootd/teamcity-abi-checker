@@ -80,7 +80,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         System.out.println("##teamcity[publishArtifacts '" + artifactPath + "']");
 
         final SimpleProgramCommandLine commandLine = new SimpleProgramCommandLine(environment,
-                getWorkingDirectory().getAbsolutePath(), "abi-compliance-checker", arguments);
+                getWorkingDirectory().getAbsolutePath(), executablePath, arguments);
         return commandLine;
     }
 

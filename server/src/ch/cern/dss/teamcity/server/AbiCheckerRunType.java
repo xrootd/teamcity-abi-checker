@@ -2,17 +2,14 @@ package ch.cern.dss.teamcity.server;
 
 
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
-import jetbrains.buildServer.requirements.Requirement;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
-import jetbrains.buildServer.util.PropertiesUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class AbiCheckerRunType extends RunType {
@@ -74,12 +71,11 @@ public class AbiCheckerRunType extends RunType {
         sb.append("Reference tag: ").append(parameters.get(AbiCheckerConstants.UI_REFERENCE_TAG)).append("\n");
         sb.append("Executable path: ").append(
                 parameters.get(AbiCheckerConstants.UI_ABI_CHECKER_EXECUTABLE_PATH)).append("\n");
-
-        if (PropertiesUtil.isEmptyOrNull(parameters.get(AbiCheckerConstants.UI_ARTIFACT_FILES))) {
-            parameters.put(AbiCheckerConstants.UI_ARTIFACT_FILES, projectManager.findBuildTypeById(
-                    parameters.get(AbiCheckerConstants.UI_BUILD_TYPE)).getArtifactPaths());
-        }
-        sb.append("Artifact path: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_FILES)).append("\n");
+        sb.append("Artifact files: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_FILES)).append("\n");
+        sb.append("Artifact type: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_TYPE)).append("\n");
+        sb.append("Header path: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_HEADER_PATH)).append("\n");
+        sb.append("Shared library path: ")
+                .append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_LIBRARY_PATH)).append("\n");
 
         return sb.toString();
     }

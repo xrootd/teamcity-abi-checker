@@ -9,10 +9,10 @@
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <c:set var="project" value="${buildForm.settingsBuildType.project}"/>
-<c:set var="onchange">
+<c:set var="changeTags">
     var TagHandler = {
     requestTags: function () {
-    var buildType = jQuery('#${abiCheckerBean.buildTypeKey} option:selected').val();
+    var buildType = jQuery('#ui-abi-checker-build-type option:selected').val();
 
     BS.ajaxRequest('/requestTags.html', {
     parameters: 'buildTypeId=' + buildType,
@@ -34,47 +34,43 @@
     var xmlDoc = jQuery.parseXML(tags);
     var xml = jQuery(xmlDoc);
 
-    jQuery('#${abiCheckerBean.referenceTagKey}').empty();
+    jQuery('#ui-abi-checker-reference-tag').empty();
 
     xml.find('tag').each(function () {
-    tag = jQuery(this).text()
+    tag = jQuery(this).text();
     option = '<option value=&quot;' + tag + '&quot;>' + tag + '</option>';
-    jQuery('#${abiCheckerBean.referenceTagKey}').append(option);
+    jQuery('#ui-abi-checker-reference-tag').append(option);
     });
 
-    jQuery('#${abiCheckerBean.referenceTagKey} option:first-child').attr('selected', true);
+    jQuery('#ui-abi-checker-reference-tag option:first-child').attr('selected', true);
     }
     };
-
-    jQuery(document).ready(function () {
     TagHandler.requestTags();
-    });
-
-    return TagHandler.requestTags();
 </c:set>
 
 <tr>
     <th><label for="${abiCheckerBean.buildTypeKey}">Reference build type: </label></th>
     <td>
-        <bs:refreshable containerId="abiCheckerComponent" pageUrl="${pageUrl}">
-
-            <props:selectProperty name="${abiCheckerBean.buildTypeKey}"
-                                  onchange="${onchange}">
-                <c:forEach var="item" items="${project.buildTypes}">
-                    <props:option value="${item.id}"><c:out value="${item.name}"/></props:option>
-                </c:forEach>
-            </props:selectProperty>
-            <span class="error" id="error_${abiCheckerBean.buildTypeKey}"></span>
+        <props:selectProperty name="${abiCheckerBean.buildTypeKey}"
+                              onchange="${changeTags}">
+            <c:forEach var="item" items="${project.buildTypes}">
+                <props:option value="${item.id}"><c:out value="${item.name}"/></props:option>
+            </c:forEach>
+        </props:selectProperty>
+        <span class="error" id="error_${abiCheckerBean.buildTypeKey}"></span>
             <span class="smallNote">Select the build type which contains the artifacts you wish to check
             ABI compatibility with.</span>
-
-        </bs:refreshable>
     </td>
 </tr>
 <tr>
     <th><label for="${abiCheckerBean.referenceTagKey}">Reference tag: </label></th>
     <td>
-        <props:selectProperty name="${abiCheckerBean.referenceTagKey}"></props:selectProperty>
+        <props:selectProperty name="${abiCheckerBean.referenceTagKey}">
+            <c:set var="firstBuildType" value="${project.buildTypes[0]}"/>
+            <c:forEach var="tag" items="${firstBuildType.tags}">
+                <props:option value="tag"><c:out value="${tag}"/></props:option>
+            </c:forEach>
+        </props:selectProperty>
         <span class="error" id="error_${abiCheckerBean.referenceTagKey}"></span>
         <span class="smallNote">Available tags will appear once you select a build type.</span>
     </td>
@@ -88,7 +84,7 @@
     </td>
 </tr>
 <tr>
-    <th><label for="${abiCheckerBean.artifactFilesKey}">Artifact paths: </label></th>
+    <th><label for="${abiCheckerBean.artifactFilesKey}">Artifact files: </label></th>
     <td>
         <props:multilineProperty name="${abiCheckerBean.artifactFilesKey}"
                                  className="longField"
@@ -96,7 +92,7 @@
                                  cols="55" rows="5"
                                  expanded="true"/>
         <span class="error" id="error_${abiCheckerBean.artifactFilesKey}"></span>
-        <span class="smallNote">Enter the path to the artifacts which contain the source headers and
+        <span class="smallNote">Enter paths to the artifacts which contain the source headers and
         shared object libraries,<br/> separated by newlines. Wildcards accepted (e.g. x86_64/foo-*.rpm)</span>
     </td>
 </tr>
@@ -105,7 +101,8 @@
     <td>
         <props:radioButtonProperty name="${abiCheckerBean.artifactTypeKey}"
                                    value="${abiCheckerBean.artifactTypeRpmKey}"
-                                   id="${abiCheckerBean.artifactTypeRpmKey}"/>
+                                   id="${abiCheckerBean.artifactTypeRpmKey}"
+                                   checked="true"/>
         <label for="${abiCheckerBean.artifactTypeRpmKey}">RPM</label><br/>
 
         <props:radioButtonProperty name="${abiCheckerBean.artifactTypeKey}"

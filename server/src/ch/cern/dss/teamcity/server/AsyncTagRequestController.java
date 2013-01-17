@@ -61,15 +61,12 @@ public class AsyncTagRequestController extends BaseController {
 
     private void getTags(final HttpServletRequest request, final Element xmlResponse) throws Exception {
         String buildTypeId = request.getParameter("buildTypeId");
-        Loggers.SERVER.info("buildTypeId: " + buildTypeId);
-
         SBuildType buildType = projectManager.findBuildTypeById(buildTypeId);
         Element tags = new Element("tags");
 
         for (String tag : buildType.getTags()) {
             tags.addContent(new Element("tag").addContent(tag));
         }
-
         xmlResponse.addContent(tags);
     }
 

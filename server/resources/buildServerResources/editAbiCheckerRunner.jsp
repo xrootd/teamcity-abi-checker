@@ -72,7 +72,7 @@
             </c:forEach>
         </props:selectProperty>
         <span class="error" id="error_${abiCheckerBean.referenceTagKey}"></span>
-        <span class="smallNote">Available tags will appear once you select a build type.</span>
+        <span class="smallNote">Select the tagged build you wish to compare ABI compatibility with.</span>
     </td>
 </tr>
 <tr>

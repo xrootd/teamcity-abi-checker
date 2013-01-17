@@ -8,7 +8,7 @@ import jetbrains.buildServer.agent.runner.CommandLineBuildService;
 import jetbrains.buildServer.agent.runner.CommandLineBuildServiceFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class AbiCheckerCommandLineBuildServiceFactory implements CommandLineBuildServiceFactory, AgentBuildRunnerInfo {
+public class AbiCheckerBuildServiceFactory implements CommandLineBuildServiceFactory, AgentBuildRunnerInfo {
 
     @NotNull
     @Override

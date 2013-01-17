@@ -25,7 +25,7 @@ public interface AbiCheckerConstants {
     String UI_ARTIFACT_HEADER_PATH = UI_PREFIX + "artifact-header-path";
     String UI_ARTIFACT_LIBRARY_PATH = UI_PREFIX + "artifact-library-path";
 
-    String UI_ARTIFACT_TYPE_RPM = UI_ARTIFACT_TYPE + "-rpm";
-    String UI_ARTIFACT_TYPE_ARCHIVE = UI_ARTIFACT_TYPE + "-archive";
-    String UI_ARTIFACT_TYPE_FOLDER = UI_ARTIFACT_TYPE + "-folder";
+    String UI_ARTIFACT_TYPE_RPM = "RPM";
+    String UI_ARTIFACT_TYPE_ARCHIVE = "Archive";
+    String UI_ARTIFACT_TYPE_FOLDER = "Folder";
 }

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="abi-checker" default="all">
-  
-  
+
+
   <property file="abi-checker.properties"/>
   <!-- Uncomment the following property if no tests compilation is needed -->
-  <!-- 
+  <!--
   <property name="skip.tests" value="true"/>
    -->
   <property name="javac2.home" value="${idea.home}/lib"/>
@@ -16,9 +16,9 @@
   </path>
   <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
   <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
-  
+
   <!-- Compiler options -->
-  
+
   <property name="compiler.debug" value="on"/>
   <property name="compiler.generate.no.warnings" value="off"/>
   <property name="compiler.args" value=""/>
@@ -66,90 +66,92 @@
     <include name="**/?*.jsp"/>
     <include name="**/?*.js"/>
   </patternset>
-  
-  
+
+
   <!-- Project Libraries -->
-  
+
   <path id="library.teamcity_open_api_agent.classpath">
     <pathelement location="${path.variable.teamcitydistribution}/devPackage/agent-api.jar"/>
+    <pathelement location="${path.variable.teamcitydistribution}/webapps/ROOT/WEB-INF/lib/commons-compress-1.3-SNAPSHOT.jar"/>
+    <pathelement location="${path.variable.teamcitydistribution}/webapps/ROOT/WEB-INF/lib/commons-io-1.3.2.jar"/>
   </path>
-  
+
   <path id="library.teamcity_open_api_common.classpath">
     <pathelement location="${path.variable.teamcitydistribution}/devPackage/common-api.jar"/>
     <pathelement location="${path.variable.teamcitydistribution}/devPackage/runtime-util.jar"/>
   </path>
-  
+
   <path id="library.teamcity_open_api_server.classpath">
     <pathelement location="${path.variable.teamcitydistribution}/devPackage/server-api.jar"/>
-      <pathelement location="${path.variable.idea.home}/lib/jdom.jar"/>
+    <pathelement location="${path.variable.idea.home}/lib/jdom.jar"/>
   </path>
-  
+
   <path id="library.teamcity_third-party_common.classpath">
     <pathelement location="${path.variable.teamcitydistribution}/webapps/ROOT/WEB-INF/lib/annotations.jar"/>
     <pathelement location="${path.variable.teamcitydistribution}/webapps/ROOT/WEB-INF/lib/openapi.jar"/>
     <pathelement location="${path.variable.teamcitydistribution}/webapps/ROOT/WEB-INF/lib/spring.jar"/>
     <pathelement location="${path.variable.teamcitydistribution}/webapps/ROOT/WEB-INF/lib/util.jar"/>
   </path>
-  
+
   <path id="library.teamcity_third-party_server.classpath">
     <pathelement location="${path.variable.teamcitydistribution}/webapps/ROOT/WEB-INF/lib/spring-webmvc.jar"/>
   </path>
-  
+
   <path id="library.tomcat.classpath">
     <pathelement location="${path.variable.teamcitydistribution}/lib/servlet-api.jar"/>
   </path>
-  
-  
+
+
   <!-- Application Server Libraries -->
-  
+
   <!-- Modules -->
-  
-  
+
+
   <!-- Module abi-checker-common -->
-  
+
   <dirname property="module.abi-checker-common.basedir" file="${ant.file}"/>
-  
-  
-  
+
+
+
   <property name="compiler.args.abi-checker-common" value="${compiler.args}"/>
-  
+
   <property name="abi-checker-common.output.dir" value="${module.abi-checker-common.basedir}/out/production/abi-checker-common"/>
   <property name="abi-checker-common.testoutput.dir" value="${module.abi-checker-common.basedir}/out/test/abi-checker-common"/>
-  
+
   <path id="abi-checker-common.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
-  
+
   <path id="abi-checker-common.module.classpath">
     <path refid="library.teamcity_open_api_common.classpath"/>
     <path refid="library.teamcity_third-party_common.classpath"/>
   </path>
-  
+
   <path id="abi-checker-common.runtime.module.classpath">
     <pathelement location="${abi-checker-common.output.dir}"/>
     <pathelement location="${abi-checker-common.testoutput.dir}"/>
     <path refid="library.teamcity_open_api_common.classpath"/>
     <path refid="library.teamcity_third-party_common.classpath"/>
   </path>
-  
-  
+
+
   <patternset id="excluded.from.module.abi-checker-common">
     <patternset refid="ignored.files"/>
   </patternset>
-  
+
   <patternset id="excluded.from.compilation.abi-checker-common">
     <patternset refid="excluded.from.module.abi-checker-common"/>
   </patternset>
-  
+
   <path id="abi-checker-common.module.sourcepath">
     <dirset dir="${module.abi-checker-common.basedir}/common">
       <include name="src"/>
     </dirset>
   </path>
-  
-  
+
+
   <target name="compile.module.abi-checker-common" depends="compile.module.abi-checker-common.production,compile.module.abi-checker-common.tests" description="Compile module abi-checker-common"/>
-  
+
   <target name="compile.module.abi-checker-common.production" description="Compile module abi-checker-common; production classes">
     <mkdir dir="${abi-checker-common.output.dir}"/>
     <javac2 destdir="${abi-checker-common.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
@@ -159,7 +161,7 @@
       <src refid="abi-checker-common.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.abi-checker-common"/>
     </javac2>
-    
+
     <copy todir="${abi-checker-common.output.dir}">
       <fileset dir="${module.abi-checker-common.basedir}/common/src">
         <patternset refid="compiler.resources"/>
@@ -167,30 +169,30 @@
       </fileset>
     </copy>
   </target>
-  
+
   <target name="compile.module.abi-checker-common.tests" depends="compile.module.abi-checker-common.production" description="compile module abi-checker-common; test classes" unless="skip.tests"/>
-  
+
   <target name="clean.module.abi-checker-common" description="cleanup module">
     <delete dir="${abi-checker-common.output.dir}"/>
     <delete dir="${abi-checker-common.testoutput.dir}"/>
   </target>
-  
-  
+
+
   <!-- Module abi-checker-agent -->
-  
+
   <dirname property="module.abi-checker-agent.basedir" file="${ant.file}"/>
-  
-  
-  
+
+
+
   <property name="compiler.args.abi-checker-agent" value="${compiler.args}"/>
-  
+
   <property name="abi-checker-agent.output.dir" value="${module.abi-checker-agent.basedir}/out/production/abi-checker-agent"/>
   <property name="abi-checker-agent.testoutput.dir" value="${module.abi-checker-agent.basedir}/out/test/abi-checker-agent"/>
-  
+
   <path id="abi-checker-agent.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
-  
+
   <path id="abi-checker-agent.module.classpath">
     <path refid="library.teamcity_open_api_agent.classpath"/>
     <path refid="library.teamcity_open_api_common.classpath"/>
@@ -198,7 +200,7 @@
     <pathelement location="${abi-checker-common.output.dir}"/>
     <pathelement location="${abi-checker-common.testoutput.dir}"/>
   </path>
-  
+
   <path id="abi-checker-agent.runtime.module.classpath">
     <pathelement location="${abi-checker-agent.output.dir}"/>
     <pathelement location="${abi-checker-agent.testoutput.dir}"/>
@@ -207,25 +209,25 @@
     <path refid="library.teamcity_third-party_common.classpath"/>
     <path refid="abi-checker-common.runtime.module.classpath"/>
   </path>
-  
-  
+
+
   <patternset id="excluded.from.module.abi-checker-agent">
     <patternset refid="ignored.files"/>
   </patternset>
-  
+
   <patternset id="excluded.from.compilation.abi-checker-agent">
     <patternset refid="excluded.from.module.abi-checker-agent"/>
   </patternset>
-  
+
   <path id="abi-checker-agent.module.sourcepath">
     <dirset dir="${module.abi-checker-agent.basedir}/agent">
       <include name="src"/>
     </dirset>
   </path>
-  
-  
+
+
   <target name="compile.module.abi-checker-agent" depends="compile.module.abi-checker-agent.production,compile.module.abi-checker-agent.tests" description="Compile module abi-checker-agent"/>
-  
+
   <target name="compile.module.abi-checker-agent.production" depends="compile.module.abi-checker-common" description="Compile module abi-checker-agent; production classes">
     <mkdir dir="${abi-checker-agent.output.dir}"/>
     <javac2 destdir="${abi-checker-agent.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
@@ -235,7 +237,7 @@
       <src refid="abi-checker-agent.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.abi-checker-agent"/>
     </javac2>
-    
+
     <copy todir="${abi-checker-agent.output.dir}">
       <fileset dir="${module.abi-checker-agent.basedir}/agent/src">
         <patternset refid="compiler.resources"/>
@@ -243,30 +245,30 @@
       </fileset>
     </copy>
   </target>
-  
+
   <target name="compile.module.abi-checker-agent.tests" depends="compile.module.abi-checker-agent.production" description="compile module abi-checker-agent; test classes" unless="skip.tests"/>
-  
+
   <target name="clean.module.abi-checker-agent" description="cleanup module">
     <delete dir="${abi-checker-agent.output.dir}"/>
     <delete dir="${abi-checker-agent.testoutput.dir}"/>
   </target>
-  
-  
+
+
   <!-- Module abi-checker-server -->
-  
+
   <dirname property="module.abi-checker-server.basedir" file="${ant.file}"/>
-  
-  
-  
+
+
+
   <property name="compiler.args.abi-checker-server" value="${compiler.args}"/>
-  
+
   <property name="abi-checker-server.output.dir" value="${module.abi-checker-server.basedir}/out/production/abi-checker-server"/>
   <property name="abi-checker-server.testoutput.dir" value="${module.abi-checker-server.basedir}/out/test/abi-checker-server"/>
-  
+
   <path id="abi-checker-server.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
-  
+
   <path id="abi-checker-server.module.classpath">
     <path refid="library.tomcat.classpath"/>
     <path refid="library.teamcity_open_api_server.classpath"/>
@@ -276,7 +278,7 @@
     <pathelement location="${abi-checker-common.output.dir}"/>
     <pathelement location="${abi-checker-common.testoutput.dir}"/>
   </path>
-  
+
   <path id="abi-checker-server.runtime.module.classpath">
     <pathelement location="${abi-checker-server.output.dir}"/>
     <pathelement location="${abi-checker-server.testoutput.dir}"/>
@@ -287,26 +289,26 @@
     <path refid="library.teamcity_third-party_server.classpath"/>
     <path refid="abi-checker-common.runtime.module.classpath"/>
   </path>
-  
-  
+
+
   <patternset id="excluded.from.module.abi-checker-server">
     <patternset refid="ignored.files"/>
   </patternset>
-  
+
   <patternset id="excluded.from.compilation.abi-checker-server">
     <patternset refid="excluded.from.module.abi-checker-server"/>
   </patternset>
-  
+
   <path id="abi-checker-server.module.sourcepath">
     <dirset dir="${module.abi-checker-server.basedir}/server">
       <include name="src"/>
       <include name="resources"/>
     </dirset>
   </path>
-  
-  
+
+
   <target name="compile.module.abi-checker-server" depends="compile.module.abi-checker-server.production,compile.module.abi-checker-server.tests" description="Compile module abi-checker-server"/>
-  
+
   <target name="compile.module.abi-checker-server.production" depends="compile.module.abi-checker-common" description="Compile module abi-checker-server; production classes">
     <mkdir dir="${abi-checker-server.output.dir}"/>
     <javac2 destdir="${abi-checker-server.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
@@ -316,7 +318,7 @@
       <src refid="abi-checker-server.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.abi-checker-server"/>
     </javac2>
-    
+
     <copy todir="${abi-checker-server.output.dir}">
       <fileset dir="${module.abi-checker-server.basedir}/server/src">
         <patternset refid="compiler.resources"/>
@@ -328,21 +330,21 @@
       </fileset>
     </copy>
   </target>
-  
+
   <target name="compile.module.abi-checker-server.tests" depends="compile.module.abi-checker-server.production" description="compile module abi-checker-server; test classes" unless="skip.tests"/>
-  
+
   <target name="clean.module.abi-checker-server" description="cleanup module">
     <delete dir="${abi-checker-server.output.dir}"/>
     <delete dir="${abi-checker-server.testoutput.dir}"/>
   </target>
-  
+
   <target name="init" description="Build initialization">
     <!-- Perform any build initialization in this target -->
   </target>
-  
+
   <target name="clean" depends="clean.module.abi-checker-common, clean.module.abi-checker-agent, clean.module.abi-checker-server" description="cleanup all"/>
-  
+
   <target name="build.modules" depends="init, clean, compile.module.abi-checker-common, compile.module.abi-checker-agent, compile.module.abi-checker-server" description="build all modules"/>
-  
+
   <target name="all" depends="build.modules" description="build all"/>
 </project>

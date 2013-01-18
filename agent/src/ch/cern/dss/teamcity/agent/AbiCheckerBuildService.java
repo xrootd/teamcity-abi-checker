@@ -1,15 +1,14 @@
 package ch.cern.dss.teamcity.agent;
 
-
 import ch.cern.dss.teamcity.agent.util.ArchiveExtractor;
+import ch.cern.dss.teamcity.agent.util.IOUtils;
+import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import com.intellij.openapi.util.SystemInfo;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.runner.BuildServiceAdapter;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.agent.runner.SimpleProgramCommandLine;
-import jetbrains.buildServer.log.Loggers;
-import jetbrains.buildServer.messages.DefaultMessagesInfo;
 import jetbrains.buildServer.util.AntPatternFileFinder;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.util.StringUtil;
@@ -18,9 +17,7 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,10 +29,7 @@ import java.util.Map;
 public class AbiCheckerBuildService extends BuildServiceAdapter {
 
     private ArchiveExtractor archiveExtractor;
-
-    public AbiCheckerBuildService() {
-        archiveExtractor = new ArchiveExtractor();
-    }
+    private SimpleLogger logger;
 
     private static String[] splitFileWildcards(final String string) {
         if (string != null) {
@@ -50,6 +44,9 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
     @NotNull
     @Override
     public ProgramCommandLine makeProgramCommandLine() throws RunBuildException {
+        this.logger = new SimpleLogger(getLogger());
+        this.archiveExtractor = new ArchiveExtractor(this.logger);
+
         final List<String> arguments = new ArrayList<String>();
         final Map<String, String> runnerParameters = getRunnerParameters();
         final Map<String, String> environment = new HashMap<String, String>(System.getenv());
@@ -86,7 +83,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
                 + ".zip";
 
         try {
-            saveUrl(referenceArtifactFilename, artifactDownloadUrl);
+            IOUtils.saveUrl(referenceArtifactFilename, artifactDownloadUrl);
         } catch (IOException e) {
             throw new RunBuildException("Error downloading artifacts", e);
         }
@@ -116,11 +113,10 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         //--------------------------------------------------------------------------------------------------------------
         // Extract the reference files if necessary
         //--------------------------------------------------------------------------------------------------------------
-        Loggers.AGENT.info("Reference artifact type: " + referenceArtifactType);
         if (referenceArtifactType.equals(AbiCheckerConstants.UI_ARTIFACT_TYPE_RPM)
                 || referenceArtifactType.equals(AbiCheckerConstants.UI_ARTIFACT_TYPE_ARCHIVE)) {
 
-            Loggers.AGENT.info("Extracting reference files");
+            logger.message("Extracting reference files");
             for (String file : referenceFiles) {
                 String archivePath = referenceArtifactFolder + File.separator + file;
                 try {
@@ -132,59 +128,107 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         }
 
         //--------------------------------------------------------------------------------------------------------------
+        // Find the newly built files
+        //--------------------------------------------------------------------------------------------------------------
+        String newArtifactFolder = getRunnerContext().getBuild().getArtifactsPaths();
+        List<String> newFiles;
+
+        try {
+            newFiles = matchFiles(newArtifactFolder, referenceArtifactFiles);
+            if (newFiles.size() == 0) {
+                throw new RunBuildException("No files matched the pattern");
+            }
+        } catch (IOException e) {
+            throw new RunBuildException("I/O error while collecting files", e);
+        }
+
+        //--------------------------------------------------------------------------------------------------------------
+        // Extract the newly built files if necessary
+        //--------------------------------------------------------------------------------------------------------------
+        if (referenceArtifactType.equals(AbiCheckerConstants.UI_ARTIFACT_TYPE_RPM)
+                || referenceArtifactType.equals(AbiCheckerConstants.UI_ARTIFACT_TYPE_ARCHIVE)) {
+
+            logger.message("Extracting new files");
+            File newExtractedArchiveFolder = new File(newArtifactFolder + File.separator + "extracted");
+            newExtractedArchiveFolder.mkdirs();
+
+            for (String file : newFiles) {
+                String newArchivePath = getRunnerContext().getBuild().getArtifactsPaths() + File.separator + file;
+                logger.message("New archive path: " + newArchivePath);
+                try {
+                    archiveExtractor.extract(newArchivePath, newExtractedArchiveFolder.getAbsolutePath(),
+                            referenceArtifactType);
+                } catch (Exception e) {
+                    throw new RunBuildException("Error extracting artifacts", e);
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------------------------------------------------
         // Find the header and library files
         //--------------------------------------------------------------------------------------------------------------
+        String referenceHeaderPath = referenceArtifactFolder + File.separator + headerPath;
+        String referenceLibraryPath = referenceArtifactFolder + File.separator + libraryPath;
 
+        String newHeaderPath = newArtifactFolder + File.separator + headerPath;
+        String newLibraryPath = newArtifactFolder + File.separator + libraryPath;
 
         //--------------------------------------------------------------------------------------------------------------
         // Write the XML files
         //--------------------------------------------------------------------------------------------------------------
+        String referenceXmlDescriptor = "" +
+                "<version>" + referenceTag + "</version>" +
+                "<headers>" + referenceHeaderPath + "</headers>" +
+                "<libs>" + referenceLibraryPath + "</libs>";
+        String newXmlDescriptor = "" +
+                "<version>" + getRunnerContext().getBuild().getBuildNumber() + "</version>" +
+                "<headers>" + newHeaderPath + "</headers>" +
+                "<libs>" + newLibraryPath + "</libs>";
 
+
+        // Write these to files...
+
+        //--------------------------------------------------------------------------------------------------------------
+        // Add the arguments
+        //--------------------------------------------------------------------------------------------------------------
+
+        arguments.add("-lib");
+        arguments.add(referenceBuildType);
+
+        arguments.add("-old");
+        arguments.add(referenceXmlDescriptor);
+
+        arguments.add("-new");
+        arguments.add(newXmlDescriptor);
+
+        //--------------------------------------------------------------------------------------------------------------
+        // Run the comparison
+        //--------------------------------------------------------------------------------------------------------------
         final SimpleProgramCommandLine commandLine = new SimpleProgramCommandLine(environment,
                 getWorkingDirectory().getAbsolutePath(), executablePath, arguments);
         return commandLine;
     }
 
-    public void saveUrl(String filename, String urlString) throws IOException {
-        BufferedInputStream in = null;
-        FileOutputStream out = null;
-        try {
-            in = new BufferedInputStream(new URL(urlString).openStream());
-            out = new FileOutputStream(filename);
-
-            byte data[] = new byte[1024];
-            int count;
-            while ((count = in.read(data, 0, 1024)) != -1) {
-                out.write(data, 0, count);
-            }
-        } finally {
-            if (in != null)
-                in.close();
-            if (out != null)
-                out.close();
-        }
-    }
-
     private List<String> matchFiles(String filePath, String fileString) throws IOException {
-        Loggers.AGENT.info("Trying to match '" + fileString + "' in directory: " + filePath);
+        logger.message("Trying to match '" + fileString + "' in directory: " + filePath);
 
         final AntPatternFileFinder finder = new AntPatternFileFinder(splitFileWildcards(fileString),
                 new String[]{},
                 SystemInfo.isFileSystemCaseSensitive);
         final File[] files = finder.findFiles(new File(filePath));
 
-        getLogger().logMessage(DefaultMessagesInfo.createTextMessage("Matched artifact files:"));
+        logger.message("Matched artifact files:");
 
         final List<String> result = new ArrayList<String>(files.length);
         for (File file : files) {
-            final String relativeName = FileUtil.getRelativePath(getWorkingDirectory(), file);
+            final String relativeName = FileUtil.getRelativePath(new File(filePath), file);
 
             result.add(relativeName);
-            getLogger().logMessage(DefaultMessagesInfo.createTextMessage("  " + relativeName));
+            logger.message("  " + relativeName);
         }
 
         if (files.length == 0) {
-            getLogger().logMessage(DefaultMessagesInfo.createTextMessage("  none"));
+            logger.message("  none");
         }
 
         return result;

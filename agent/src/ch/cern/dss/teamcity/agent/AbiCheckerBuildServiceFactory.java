@@ -31,7 +31,7 @@ public class AbiCheckerBuildServiceFactory implements CommandLineBuildServiceFac
     @Override
     public boolean canRun(@NotNull BuildAgentConfiguration buildAgentConfiguration) {
 
-        // Check for existence of rpm2cpio, cpio, tar
+        // Check for existence of rpm2cpio
         return true;
     }
 }

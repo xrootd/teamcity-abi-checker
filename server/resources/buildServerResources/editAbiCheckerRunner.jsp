@@ -68,7 +68,7 @@
         <props:selectProperty name="${abiCheckerBean.referenceTagKey}">
             <c:set var="firstBuildType" value="${project.buildTypes[0]}"/>
             <c:forEach var="tag" items="${firstBuildType.tags}">
-                <props:option value="tag"><c:out value="${tag}"/></props:option>
+                <props:option value="${tag}"><c:out value="${tag}"/></props:option>
             </c:forEach>
         </props:selectProperty>
         <span class="error" id="error_${abiCheckerBean.referenceTagKey}"></span>
@@ -101,19 +101,16 @@
     <td>
         <props:radioButtonProperty name="${abiCheckerBean.artifactTypeKey}"
                                    value="${abiCheckerBean.artifactTypeRpmKey}"
-                                   id="${abiCheckerBean.artifactTypeRpmKey}"
                                    checked="true"/>
-        <label for="${abiCheckerBean.artifactTypeRpmKey}">RPM</label><br/>
+        <label for="${abiCheckerBean.artifactTypeRpmKey}">${abiCheckerBean.artifactTypeRpmKey}</label><br/>
 
         <props:radioButtonProperty name="${abiCheckerBean.artifactTypeKey}"
-                                   value="${abiCheckerBean.artifactTypeArchiveKey}"
-                                   id="${abiCheckerBean.artifactTypeArchiveKey}"/>
-        <label for="${abiCheckerBean.artifactTypeArchiveKey}">Archive</label><br/>
+                                   value="${abiCheckerBean.artifactTypeArchiveKey}"/>
+        <label for="${abiCheckerBean.artifactTypeArchiveKey}">${abiCheckerBean.artifactTypeArchiveKey}</label><br/>
 
         <props:radioButtonProperty name="${abiCheckerBean.artifactTypeKey}"
-                                   value="${abiCheckerBean.artifactTypeFolderKey}"
-                                   id="${abiCheckerBean.artifactTypeFolderKey}"/>
-        <label for="${abiCheckerBean.artifactTypeFolderKey}">Folder</label><br/>
+                                   value="${abiCheckerBean.artifactTypeFolderKey}"/>
+        <label for="${abiCheckerBean.artifactTypeFolderKey}">${abiCheckerBean.artifactTypeFolderKey}</label><br/>
         <span class="smallNote">Select which type of artifact this is.</span>
     </td>
 </tr>

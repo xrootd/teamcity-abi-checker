@@ -13,8 +13,6 @@ import jetbrains.buildServer.messages.DefaultMessagesInfo;
 import jetbrains.buildServer.util.AntPatternFileFinder;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.util.StringUtil;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.compressors.CompressorException;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.InputSource;
 
@@ -71,7 +69,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         String serverUrl = getAgentConfiguration().getServerUrl();
         String restUrl = serverUrl + "/guestAuth/app/rest/builds/buildType:" + referenceBuildType + ",tag:"
                 + referenceTag + ",personal:false,count:1,status:SUCCESS";
-        String artifactDownloadUrl = "";
+        String artifactDownloadUrl;
 
         try {
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
@@ -118,6 +116,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         //--------------------------------------------------------------------------------------------------------------
         // Extract the reference files if necessary
         //--------------------------------------------------------------------------------------------------------------
+        Loggers.AGENT.info("Reference artifact type: " + referenceArtifactType);
         if (referenceArtifactType.equals(AbiCheckerConstants.UI_ARTIFACT_TYPE_RPM)
                 || referenceArtifactType.equals(AbiCheckerConstants.UI_ARTIFACT_TYPE_ARCHIVE)) {
 

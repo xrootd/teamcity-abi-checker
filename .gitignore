@@ -1,2 +1,5 @@
 out
+lib-compile
+lib
+dist
 .idea

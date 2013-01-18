@@ -15,59 +15,50 @@ import java.io.*;
 
 public class ArchiveExtractor {
 
-    public void extract(String archivePath, String outputFolder, String archiveType) {
+    public void extract(String archivePath, String outputFolder, String archiveType)
+            throws CompressorException, ArchiveException, IOException {
 
-        try {
-            if (archiveType == "tar" && (archivePath.endsWith(".gz") || archivePath.endsWith(".bz2"))) {
-                archivePath = decompress(archivePath, outputFolder);
-            }
-
-            File folder = new File(outputFolder);
-            if (!folder.exists()) {
-                folder.mkdir();
-            }
-
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(archivePath));
-            ArchiveInputStream input;
-
-            input = new ArchiveStreamFactory().createArchiveInputStream(archiveType, in);
-
-            final byte[] buffer = new byte[4096];
-            ArchiveEntry archiveEntry;
-
-            while ((archiveEntry = input.getNextEntry()) != null) {
-                String newFileName = archiveEntry.getName();
-                Loggers.AGENT.info("Extracting: " + archiveEntry);
-
-                File newFile = new File(outputFolder + File.separator + newFileName);
-
-                newFile.getParentFile().mkdirs();
-
-                if (!archiveEntry.isDirectory()) {
-                    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(newFile));
-                    int numBytes;
-                    while ((numBytes = input.read(buffer, 0, buffer.length)) != -1)
-                        out.write(buffer, 0, numBytes);
-                    out.flush();
-                    out.close();
-                }
-
-            }
-            input.close();
-
-        } catch (FileNotFoundException e) {
-            Loggers.AGENT.error("Error extracting: " + e.getMessage());
-        } catch (ArchiveException e) {
-            Loggers.AGENT.error("Error extracting: " + e.getMessage());
-        } catch (IOException e) {
-            Loggers.AGENT.error("Error extracting: " + e.getMessage());
-        } catch (CompressorException e) {
-            Loggers.AGENT.error("Error decompressing: " + e.getMessage());
+        if (archiveType.equals("tar") && (archivePath.endsWith(".gz") || archivePath.endsWith(".bz2"))) {
+            archivePath = decompress(archivePath);
+        } else if (archiveType.equalsIgnoreCase("rpm") && archivePath.endsWith("rpm")) {
+            archivePath = rpm2cpio(archivePath);
+            archiveType = "cpio";
         }
+
+        File folder = new File(outputFolder);
+        folder.mkdirs();
+
+        BufferedInputStream in = new BufferedInputStream(new FileInputStream(archivePath));
+        ArchiveInputStream input;
+
+        input = new ArchiveStreamFactory().createArchiveInputStream(archiveType, in);
+
+        final byte[] buffer = new byte[4096];
+        ArchiveEntry archiveEntry;
+
+        while ((archiveEntry = input.getNextEntry()) != null) {
+            String newFileName = archiveEntry.getName();
+            Loggers.AGENT.info("Extracting: " + newFileName);
+
+            File newFile = new File(outputFolder + File.separator + newFileName);
+            newFile.getParentFile().mkdirs();
+            newFile.createNewFile();
+
+            if (!archiveEntry.isDirectory()) {
+                BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(newFile));
+                int numBytes;
+                while ((numBytes = input.read(buffer, 0, buffer.length)) != -1)
+                    out.write(buffer, 0, numBytes);
+                out.flush();
+                out.close();
+            }
+
+        }
+        input.close();
 
     }
 
-    public String decompress(String archivePath, String outputFolder)
+    public String decompress(String archivePath)
             throws ArchiveException, IOException, CompressorException {
 
         Loggers.AGENT.info("Decompressing: " + archivePath);
@@ -79,5 +70,16 @@ public class ArchiveExtractor {
         in.close();
 
         return tarPath;
+    }
+
+    public String rpm2cpio(String archivePath) throws IOException {
+        System.out.println("Converting to cpio: " + archivePath);
+        String cpioPath = FilenameUtils.removeExtension(archivePath) + ".cpio";
+
+        String envp[] = new String[1];
+        envp[0] = "PATH=" + System.getProperty("java.library.path");
+        Runtime.getRuntime().exec("/usr/bin/rpm2cpio", envp);
+
+        return cpioPath;
     }
 }

@@ -13,18 +13,17 @@ import jetbrains.buildServer.messages.DefaultMessagesInfo;
 import jetbrains.buildServer.util.AntPatternFileFinder;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.util.StringUtil;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.compressors.CompressorException;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,77 +68,73 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         //--------------------------------------------------------------------------------------------------------------
         // Download reference artifact zip file
         //--------------------------------------------------------------------------------------------------------------
-
         String serverUrl = getAgentConfiguration().getServerUrl();
         String restUrl = serverUrl + "/guestAuth/app/rest/builds/buildType:" + referenceBuildType + ",tag:"
                 + referenceTag + ",personal:false,count:1,status:SUCCESS";
-        Loggers.AGENT.info(">>>>>>> REST url: " + restUrl);
-
-        SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-        SAXParser saxParser;
-        BuildInfoXmlResponseHandler handler;
         String artifactDownloadUrl = "";
 
         try {
-            saxParser = saxParserFactory.newSAXParser();
-            handler = new BuildInfoXmlResponseHandler();
+            SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+            SAXParser saxParser = saxParserFactory.newSAXParser();
+            BuildInfoXmlResponseHandler handler = new BuildInfoXmlResponseHandler();
             saxParser.parse(new InputSource(new URL(restUrl).openStream()), handler);
             artifactDownloadUrl = serverUrl + handler.getArtifactDownloadUrl();
-        } catch (ParserConfigurationException e) {
-            Loggers.AGENT.error("Error configuring SAX parser: " + e.getMessage());
-        } catch (SAXException e) {
-            Loggers.AGENT.error("Error parsing XML: " + e.getMessage());
-        } catch (MalformedURLException e) {
-            Loggers.AGENT.error("Error retrieving XML: " + e.getMessage());
-        } catch (IOException e) {
-            Loggers.AGENT.error("Error: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RunBuildException("Error determining build info XML", e);
         }
 
-        Loggers.AGENT.info("Artifact download URL: " + artifactDownloadUrl);
-
         String referenceArtifactFolder = getWorkingDirectory().getAbsolutePath() + "/artifacts-" + referenceTag;
-        String referenceArtifactFilename = getWorkingDirectory().getAbsolutePath() + "/artifacts-" + referenceTag + ".zip";
-        Loggers.AGENT.info("Artifacts will be d/led to: " + referenceArtifactFilename);
+        String referenceArtifactFilename = getWorkingDirectory().getAbsolutePath() + "/artifacts-" + referenceTag
+                + ".zip";
 
         try {
             saveUrl(referenceArtifactFilename, artifactDownloadUrl);
         } catch (IOException e) {
-            Loggers.AGENT.error("Error downloading artifacts: " + e.getMessage());
+            throw new RunBuildException("Error downloading artifacts", e);
         }
 
         //--------------------------------------------------------------------------------------------------------------
         // Extract downloaded artifact zip
         //--------------------------------------------------------------------------------------------------------------
-        archiveExtractor.extract(referenceArtifactFilename, referenceArtifactFolder, "zip");
-
-        //--------------------------------------------------------------------------------------------------------------
-        // Find the artifact files
-        //--------------------------------------------------------------------------------------------------------------
-        List<String> files = new ArrayList<String>();
-
         try {
-            String matchFilePath = referenceArtifactFolder + File.separator + referenceArtifactFiles;
-            Loggers.AGENT.info("Trying to match files: " + matchFilePath);
-            files = matchFiles(referenceArtifactFolder + File.separator + referenceArtifactFiles);
+            archiveExtractor.extract(referenceArtifactFilename, referenceArtifactFolder, "zip");
+        } catch (Exception e) {
+            throw new RunBuildException("Error extracting artifacts", e);
+        }
+
+        //--------------------------------------------------------------------------------------------------------------
+        // Find the reference files
+        //--------------------------------------------------------------------------------------------------------------
+        List<String> referenceFiles;
+        try {
+            referenceFiles = matchFiles(referenceArtifactFolder, referenceArtifactFiles);
+            if (referenceFiles.size() == 0) {
+                throw new RunBuildException("No files matched the pattern");
+            }
         } catch (IOException e) {
             throw new RunBuildException("I/O error while collecting files", e);
         }
 
-        if (files.size() == 0) {
-            throw new RunBuildException("No files matched the pattern");
+        //--------------------------------------------------------------------------------------------------------------
+        // Extract the reference files if necessary
+        //--------------------------------------------------------------------------------------------------------------
+        if (referenceArtifactType.equals(AbiCheckerConstants.UI_ARTIFACT_TYPE_RPM)
+                || referenceArtifactType.equals(AbiCheckerConstants.UI_ARTIFACT_TYPE_ARCHIVE)) {
+
+            Loggers.AGENT.info("Extracting reference files");
+            for (String file : referenceFiles) {
+                String archivePath = referenceArtifactFolder + File.separator + file;
+                try {
+                    archiveExtractor.extract(archivePath, referenceArtifactFolder, referenceArtifactType);
+                } catch (Exception e) {
+                    throw new RunBuildException("Error extracting artifacts", e);
+                }
+            }
         }
-
-
-        //--------------------------------------------------------------------------------------------------------------
-        // Extract the artifact files if necessary
-        //--------------------------------------------------------------------------------------------------------------
-
-
 
         //--------------------------------------------------------------------------------------------------------------
         // Find the header and library files
         //--------------------------------------------------------------------------------------------------------------
-
 
 
         //--------------------------------------------------------------------------------------------------------------
@@ -151,7 +146,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         return commandLine;
     }
 
-    public void saveUrl(String filename, String urlString) throws MalformedURLException, IOException {
+    public void saveUrl(String filename, String urlString) throws IOException {
         BufferedInputStream in = null;
         FileOutputStream out = null;
         try {
@@ -171,13 +166,13 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         }
     }
 
-    private List<String> matchFiles(String fileString) throws IOException {
-        final Map<String, String> runParameters = getRunnerParameters();
+    private List<String> matchFiles(String filePath, String fileString) throws IOException {
+        Loggers.AGENT.info("Trying to match '" + fileString + "' in directory: " + filePath);
 
         final AntPatternFileFinder finder = new AntPatternFileFinder(splitFileWildcards(fileString),
                 new String[]{},
                 SystemInfo.isFileSystemCaseSensitive);
-        final File[] files = finder.findFiles(getCheckoutDirectory());
+        final File[] files = finder.findFiles(new File(filePath));
 
         getLogger().logMessage(DefaultMessagesInfo.createTextMessage("Matched artifact files:"));
 

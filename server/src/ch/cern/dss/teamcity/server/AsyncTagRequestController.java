@@ -1,3 +1,21 @@
+/**
+ * Copyright (c) 2012-2013 by European Organization for Nuclear Research (CERN)
+ * Author: Justin Salmon <jsalmon@cern.ch>
+ *
+ * XRootD is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * XRootD is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package ch.cern.dss.teamcity.server;
 
 import jetbrains.buildServer.controllers.ActionErrors;
@@ -15,9 +33,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * Example custom page controller
- */
 public class AsyncTagRequestController extends BaseController {
     private PluginDescriptor pluginDescriptor;
     private ProjectManager projectManager;
@@ -26,7 +41,7 @@ public class AsyncTagRequestController extends BaseController {
                                      ProjectManager projectManager) {
         this.pluginDescriptor = pluginDescriptor;
         this.projectManager = projectManager;
-        // this will make the controller accessible via <teamcity_url>\abi-checker.html
+        // this will make the controller accessible via <teamcity_url>/requestTags.html
         manager.registerController("/requestTags.html", this);
     }
 

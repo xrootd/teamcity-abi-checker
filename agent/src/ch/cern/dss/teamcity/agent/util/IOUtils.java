@@ -23,11 +23,16 @@ import jetbrains.buildServer.log.Loggers;
 import java.io.*;
 import java.net.URL;
 
+/**
+ *
+ */
 public class IOUtils {
 
     /**
      * @param command array of commands, needed for pipes to work
+     *
      * @return
+     *
      * @throws InterruptedException
      * @throws IOException
      */
@@ -51,6 +56,12 @@ public class IOUtils {
         return process.exitValue();
     }
 
+    /**
+     * @param filename
+     * @param urlString
+     *
+     * @throws IOException
+     */
     public static void saveUrl(String filename, String urlString) throws IOException {
         BufferedInputStream in = null;
         FileOutputStream out = null;

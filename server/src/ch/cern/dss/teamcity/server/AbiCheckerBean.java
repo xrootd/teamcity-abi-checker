@@ -21,6 +21,10 @@ package ch.cern.dss.teamcity.server;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Simple spring bean (defined in ../META-INF/build-server-plugin-abi-checker-xml) to provide identification constants
+ * to the web UI forms.
+ */
 public class AbiCheckerBean {
     @NotNull
     public String getProjectNameKey() {

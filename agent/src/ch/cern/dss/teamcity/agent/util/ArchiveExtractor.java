@@ -18,9 +18,7 @@
 
 package ch.cern.dss.teamcity.agent.util;
 
-import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.log.Loggers;
-import jetbrains.buildServer.messages.DefaultMessagesInfo;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -33,14 +31,30 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;
 
+/**
+ *
+ */
 public class ArchiveExtractor {
 
     private SimpleLogger logger;
 
+    /**
+     * @param logger
+     */
     public ArchiveExtractor(SimpleLogger logger) {
         this.logger = logger;
     }
 
+    /**
+     * @param archivePath
+     * @param outputFolder
+     * @param archiveType
+     *
+     * @throws CompressorException
+     * @throws ArchiveException
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void extract(String archivePath, String outputFolder, String archiveType)
             throws CompressorException, ArchiveException, IOException, InterruptedException {
         logger.message("Extracting archive: " + archivePath);
@@ -88,6 +102,15 @@ public class ArchiveExtractor {
 
     }
 
+    /**
+     * @param archivePath
+     *
+     * @return
+     *
+     * @throws ArchiveException
+     * @throws IOException
+     * @throws CompressorException
+     */
     public String decompress(String archivePath)
             throws ArchiveException, IOException, CompressorException {
 
@@ -102,6 +125,14 @@ public class ArchiveExtractor {
         return tarPath;
     }
 
+    /**
+     * @param archivePath
+     *
+     * @return
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public String rpm2cpio(String archivePath) throws IOException, InterruptedException {
         logger.message("Converting to cpio: " + archivePath);
         String cpioPath = FilenameUtils.removeExtension(archivePath) + ".cpio";

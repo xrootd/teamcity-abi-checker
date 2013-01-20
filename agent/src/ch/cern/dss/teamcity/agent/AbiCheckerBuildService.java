@@ -43,11 +43,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ *
+ */
 public class AbiCheckerBuildService extends BuildServiceAdapter {
 
     private ArchiveExtractor archiveExtractor;
     private SimpleLogger logger;
 
+    /**
+     * @param string
+     *
+     * @return
+     */
     private static String[] splitFileWildcards(final String string) {
         if (string != null) {
             final String filesStringWithSpaces = string.replace('\n', ' ').replace('\r', ' ').replace('\\', '/');
@@ -58,6 +66,11 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         return new String[0];
     }
 
+    /**
+     * @return
+     *
+     * @throws RunBuildException
+     */
     @NotNull
     @Override
     public ProgramCommandLine makeProgramCommandLine() throws RunBuildException {
@@ -226,6 +239,14 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         return commandLine;
     }
 
+    /**
+     * @param filePath
+     * @param fileString
+     *
+     * @return
+     *
+     * @throws IOException
+     */
     private List<String> matchFiles(String filePath, String fileString) throws IOException {
         logger.message("Trying to match '" + fileString + "' in directory: " + filePath);
 

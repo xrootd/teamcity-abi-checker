@@ -21,6 +21,9 @@ package ch.cern.dss.teamcity.common;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ *
+ */
 public interface AbiCheckerConstants {
     @NotNull
     @NonNls
@@ -31,7 +34,6 @@ public interface AbiCheckerConstants {
     @NotNull
     @NonNls
     String DISPLAY_NAME = "ABI Compatibility Checker";
-
     String UI_PREFIX = "ui-" + TYPE + "-";
     String UI_PROJECT_NAME = UI_PREFIX + "project-name";
     String UI_BUILD_TYPE = UI_PREFIX + "build-type";
@@ -41,7 +43,6 @@ public interface AbiCheckerConstants {
     String UI_ARTIFACT_TYPE = UI_PREFIX + "artifact-type";
     String UI_ARTIFACT_HEADER_PATH = UI_PREFIX + "artifact-header-path";
     String UI_ARTIFACT_LIBRARY_PATH = UI_PREFIX + "artifact-library-path";
-
     String UI_ARTIFACT_TYPE_RPM = "RPM";
     String UI_ARTIFACT_TYPE_ARCHIVE = "Archive";
     String UI_ARTIFACT_TYPE_FOLDER = "Folder";

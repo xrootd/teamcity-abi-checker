@@ -21,10 +21,16 @@ package ch.cern.dss.teamcity.agent.util;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ *
+ */
 public class SimpleLogger extends LoggerAdapter {
     @NotNull
     private final BuildProgressLogger logger;
 
+    /**
+     * @param buildLogger
+     */
     public SimpleLogger(@NotNull final BuildProgressLogger buildLogger) {
         logger = buildLogger;
     }

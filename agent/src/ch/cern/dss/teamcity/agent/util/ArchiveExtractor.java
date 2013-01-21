@@ -114,7 +114,7 @@ public class ArchiveExtractor {
     public String decompress(String archivePath)
             throws ArchiveException, IOException, CompressorException {
 
-        logger.message("Decompressing: " + archivePath);
+        Loggers.AGENT.debug("Decompressing: " + archivePath);
         String tarPath = FilenameUtils.removeExtension(archivePath);
 
         final BufferedInputStream is = new BufferedInputStream(new FileInputStream(archivePath));
@@ -134,7 +134,7 @@ public class ArchiveExtractor {
      * @throws InterruptedException
      */
     public String rpm2cpio(String archivePath) throws IOException, InterruptedException {
-        logger.message("Converting to cpio: " + archivePath);
+        Loggers.AGENT.debug("Converting to cpio: " + archivePath);
         String cpioPath = FilenameUtils.removeExtension(archivePath) + ".cpio";
         String[] rpm2cpioCommand = {
                 "/bin/sh",

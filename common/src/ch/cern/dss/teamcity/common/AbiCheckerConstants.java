@@ -48,4 +48,7 @@ public interface AbiCheckerConstants {
     String UI_ARTIFACT_TYPE_RPM = "RPM";
     String UI_ARTIFACT_TYPE_ARCHIVE = "Archive";
     String UI_ARTIFACT_TYPE_FOLDER = "Folder";
+
+    String TAB_ID = "abiCheckerReport";
+    String TAB_TITLE = "ABI Compatibility Report";
 }

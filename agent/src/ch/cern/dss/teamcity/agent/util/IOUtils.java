@@ -81,4 +81,10 @@ public class IOUtils {
                 out.close();
         }
     }
+
+    public static void writeFile(File file, String content) throws IOException {
+        BufferedWriter out = new BufferedWriter(new FileWriter(file), 32768);
+        out.write(content);
+        out.close();
+    }
 }

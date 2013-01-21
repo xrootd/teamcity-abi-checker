@@ -127,13 +127,11 @@ public class AbiCheckerRunType extends RunType {
         sb.append("Reference build type: ").append(projectManager.findBuildTypeById(
                 parameters.get(AbiCheckerConstants.UI_BUILD_TYPE)).getName()).append("\n");
         sb.append("Reference tag: ").append(parameters.get(AbiCheckerConstants.UI_REFERENCE_TAG)).append("\n");
-        sb.append("Executable path: ").append(
-                parameters.get(AbiCheckerConstants.UI_ABI_CHECKER_EXECUTABLE_PATH)).append("\n");
         sb.append("Artifact files: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_FILES)).append("\n");
         sb.append("Artifact type: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_TYPE)).append("\n");
-        sb.append("Header path: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_HEADER_PATH)).append("\n");
-        sb.append("Shared library path: ")
-                .append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_LIBRARY_PATH)).append("\n");
+        sb.append("Header files: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_HEADER_FILES)).append("\n");
+        sb.append("Shared library files: ")
+                .append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_LIBRARY_FILES)).append("\n");
 
         return sb.toString();
     }

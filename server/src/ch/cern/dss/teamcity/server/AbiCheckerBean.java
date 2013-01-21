@@ -72,14 +72,17 @@ public class AbiCheckerBean {
     }
 
     @NotNull
-    public String getArtifactHeaderPathKey() {
-        return AbiCheckerConstants.UI_ARTIFACT_HEADER_PATH;
+    public String getArtifactHeaderFilesKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_HEADER_FILES;
     }
 
     @NotNull
-    public String getArtifactLibraryPathKey() {
-        return AbiCheckerConstants.UI_ARTIFACT_LIBRARY_PATH;
+    public String getArtifactLibraryFilesKey() {
+        return AbiCheckerConstants.UI_ARTIFACT_LIBRARY_FILES;
     }
 
-
+    @NotNull
+    public String getGccOptionsKey() {
+        return AbiCheckerConstants.UI_GCC_OPTIONS;
+    }
 }

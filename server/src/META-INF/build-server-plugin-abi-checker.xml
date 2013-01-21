@@ -5,6 +5,8 @@
                            http://www.springframework.org/schema/beans/spring-beans-2.0.xsd"
        default-autowire="constructor">
 
-  <bean id="AbiCheckerBean" class="ch.cern.dss.teamcity.server.AbiCheckerBean"/>
+    <bean id="AbiCheckerBean" class="ch.cern.dss.teamcity.server.AbiCheckerBean"/>
+    <bean id="AbiCheckerRunType" class="ch.cern.dss.teamcity.server.AbiCheckerRunType"/>
+    <bean id="AsyncTagRequestController" class="ch.cern.dss.teamcity.server.AsyncTagRequestController"/>
 
 </beans>

@@ -41,8 +41,10 @@ public interface AbiCheckerConstants {
     String UI_ABI_CHECKER_EXECUTABLE_PATH = UI_PREFIX + "executable-path";
     String UI_ARTIFACT_FILES = UI_PREFIX + "artifact-files";
     String UI_ARTIFACT_TYPE = UI_PREFIX + "artifact-type";
-    String UI_ARTIFACT_HEADER_PATH = UI_PREFIX + "artifact-header-path";
-    String UI_ARTIFACT_LIBRARY_PATH = UI_PREFIX + "artifact-library-path";
+    String UI_ARTIFACT_HEADER_FILES = UI_PREFIX + "artifact-header-files";
+    String UI_ARTIFACT_LIBRARY_FILES = UI_PREFIX + "artifact-library-files";
+    String UI_GCC_OPTIONS = UI_PREFIX + "gcc-options";
+
     String UI_ARTIFACT_TYPE_RPM = "RPM";
     String UI_ARTIFACT_TYPE_ARCHIVE = "Archive";
     String UI_ARTIFACT_TYPE_FOLDER = "Folder";

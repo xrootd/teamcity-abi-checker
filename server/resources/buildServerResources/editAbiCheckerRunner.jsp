@@ -27,10 +27,13 @@
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
 <c:set var="project" value="${buildForm.settingsBuildType.project}"/>
+<c:set var="firstBuildType" value="${project.buildTypes[0]}"/>
 <c:set var="changeTags">
     var TagHandler = {
     requestTags: function () {
     var buildType = jQuery('#${abiCheckerBean.buildTypeKey} option:selected').val();
+    var buildTypeName = jQuery('#${abiCheckerBean.buildTypeKey} option:selected').text();
+    jQuery('#${abiCheckerBean.buildTypeNameKey}').val(buildTypeName);
 
     BS.ajaxRequest('/requestTags.html', {
     parameters: 'buildTypeId=' + buildType,
@@ -76,6 +79,8 @@
                     <props:option value="${item.id}"><c:out value="${item.name}"/></props:option>
                 </c:forEach>
             </props:selectProperty>
+            <props:hiddenProperty name="${abiCheckerBean.buildTypeNameKey}"
+                                  value="${firstBuildType.name}" />
             <span class="error" id="error_${abiCheckerBean.buildTypeKey}"></span>
             <span class="smallNote">Select the build type which contains the artifacts you wish to check
             ABI compatibility with.</span>
@@ -85,7 +90,6 @@
         <th><label for="${abiCheckerBean.referenceTagKey}">Reference tag: </label></th>
         <td>
             <props:selectProperty name="${abiCheckerBean.referenceTagKey}">
-                <c:set var="firstBuildType" value="${project.buildTypes[0]}"/>
                 <c:forEach var="tag" items="${firstBuildType.tags}">
                     <props:option value="${tag}"><c:out value="${tag}"/></props:option>
                 </c:forEach>

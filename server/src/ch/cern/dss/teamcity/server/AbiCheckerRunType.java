@@ -124,9 +124,6 @@ public class AbiCheckerRunType extends RunType {
     public String describeParameters(@NotNull Map<String, String> parameters) {
         StringBuilder sb = new StringBuilder();
 
-        parameters.put(AbiCheckerConstants.BUILD_TYPE_NAME, projectManager.findBuildTypeById(
-                parameters.get(AbiCheckerConstants.BUILD_TYPE)).getName());
-
         sb.append("Reference build type: ").append(parameters.get(AbiCheckerConstants.BUILD_TYPE_NAME)).append("\n");
         sb.append("Reference tag: ").append(parameters.get(AbiCheckerConstants.REFERENCE_TAG)).append("\n");
         sb.append("Artifact files: ").append(parameters.get(AbiCheckerConstants.ARTIFACT_FILES)).append("\n");

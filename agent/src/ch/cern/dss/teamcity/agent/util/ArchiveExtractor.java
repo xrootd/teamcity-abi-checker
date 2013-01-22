@@ -136,7 +136,6 @@ public class ArchiveExtractor {
 
         ProcessBuilder builder = new ProcessBuilder("./extract-cpio.sh");
         builder.redirectErrorStream(true);
-
         Process process = builder.start();
 
         BufferedReader reader = new BufferedReader(
@@ -151,7 +150,6 @@ public class ArchiveExtractor {
         process.getInputStream().close();
         process.getOutputStream().close();
         process.getErrorStream().close();
-
     }
 
     /**

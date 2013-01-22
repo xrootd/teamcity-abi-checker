@@ -51,4 +51,5 @@ public interface AbiCheckerConstants {
 
     String TAB_ID = "abiCheckerReport";
     String TAB_TITLE = "ABI Compatibility Report";
+    String REPORT_FILE = "/abi-checker-report/abi_compat_report.html";
 }

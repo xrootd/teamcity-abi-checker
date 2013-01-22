@@ -82,6 +82,12 @@ public class IOUtils {
         }
     }
 
+    /**
+     *
+     * @param filename
+     * @param text
+     * @throws IOException
+     */
     public static void writeFile(String filename, String text) throws IOException {
         FileOutputStream out = new FileOutputStream(filename);
         out.write(text.getBytes("UTF-8"));

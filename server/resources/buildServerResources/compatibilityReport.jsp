@@ -1,1 +1,6 @@
-<p>foo bar baz</p>
+<%@ include file="/include.jsp" %>
+<%@ taglib prefix="bs" tagdir="/WEB-INF/tags" %>
+
+<jsp:useBean id="compatibilityReport" type="java.lang.String" scope="request" />
+
+<h1>${compatibilityReport}</h1>

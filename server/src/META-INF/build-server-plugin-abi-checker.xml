@@ -8,6 +8,6 @@
     <bean id="AbiCheckerBean" class="ch.cern.dss.teamcity.server.AbiCheckerBean"/>
     <bean id="AbiCheckerRunType" class="ch.cern.dss.teamcity.server.AbiCheckerRunType"/>
     <bean id="AsyncTagRequestController" class="ch.cern.dss.teamcity.server.AsyncTagRequestController"/>
-    <bean id="CompatibilityReportPageExtension" class="ch.cern.dss.teamcity.server.CompatibilityReportPageExtension"/>
+    <bean id="CompatibilityReportTab" class="ch.cern.dss.teamcity.server.CompatibilityReportTab"/>
 
 </beans>

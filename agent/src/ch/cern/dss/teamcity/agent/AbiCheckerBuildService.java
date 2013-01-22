@@ -249,6 +249,9 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         arguments.add("-new");
         arguments.add(newXmlFile);
 
+        arguments.add("-report-path");
+        arguments.add(getBuild().getArtifactsPaths() + AbiCheckerConstants.REPORT_FILE);
+
         //--------------------------------------------------------------------------------------------------------------
         // Run the comparison
         //--------------------------------------------------------------------------------------------------------------

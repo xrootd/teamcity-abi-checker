@@ -82,6 +82,7 @@
   </path>
 
   <path id="library.teamcity_open_api_server.classpath">
+    <pathelement location="${path.variable.teamcitydistribution}/webapps/ROOT/WEB-INF/lib/commons-io-1.3.2.jar"/>
     <pathelement location="${path.variable.teamcitydistribution}/devPackage/server-api.jar"/>
     <pathelement location="${path.variable.idea.home}/lib/jdom.jar"/>
   </path>

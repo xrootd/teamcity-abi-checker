@@ -82,9 +82,9 @@ public class IOUtils {
         }
     }
 
-    public static void writeFile(File file, String content) throws IOException {
-        BufferedWriter out = new BufferedWriter(new FileWriter(file), 32768);
-        out.write(content);
+    public static void writeFile(String filename, String text) throws IOException {
+        FileOutputStream out = new FileOutputStream(filename);
+        out.write(text.getBytes("UTF-8"));
         out.close();
     }
 }

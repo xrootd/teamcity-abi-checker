@@ -117,7 +117,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         //--------------------------------------------------------------------------------------------------------------
         String referenceExtractedArtifactFolder = getBuildTempDirectory().getAbsolutePath() + "/artifacts-" + referenceTag;
         try {
-            archiveExtractor.extract(referenceArtifactZip, referenceExtractedArtifactFolder, "zip");
+            archiveExtractor.extract(referenceArtifactZip, referenceExtractedArtifactFolder);
         } catch (Exception e) {
             throw new RunBuildException("Error extracting artifacts", e);
         }
@@ -145,7 +145,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
             logger.message("Extracting reference files");
             for (String artifact : matchedReferenceArtifacts) {
                 try {
-                    archiveExtractor.extract(artifact, referenceExtractedArtifactFolder, referenceArtifactType);
+                    archiveExtractor.extract(artifact, referenceExtractedArtifactFolder);
                 } catch (Exception e) {
                     throw new RunBuildException("Error extracting artifacts", e);
                 }
@@ -181,8 +181,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
             for (String artifact : matchedNewArtifacts) {
                 logger.message("New archive path: " + artifact);
                 try {
-                    archiveExtractor.extract(artifact, newExtractedArtifactFolder.getAbsolutePath(),
-                            referenceArtifactType);
+                    archiveExtractor.extract(artifact, newExtractedArtifactFolder.getAbsolutePath());
                 } catch (Exception e) {
                     throw new RunBuildException("Error extracting artifacts", e);
                 }
@@ -226,9 +225,9 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         logger.message("ref XML: " + referenceXmlDescriptor);
         logger.message("new XML: " + newXmlDescriptor);
 
-        File referenceXmlFile = new File(getBuildTempDirectory() + File.separator + referenceTag + ".xml");
-        File newXmlFile = new File(getBuildTempDirectory() + File.separator +
-                getRunnerContext().getBuild().getBuildNumber() + ".xml");
+        String referenceXmlFile = getBuildTempDirectory() + File.separator + referenceTag + ".xml";
+        String newXmlFile = getBuildTempDirectory() + File.separator +
+                getRunnerContext().getBuild().getBuildNumber() + ".xml";
         try {
             IOUtils.writeFile(referenceXmlFile, referenceXmlDescriptor);
             IOUtils.writeFile(newXmlFile, newXmlDescriptor);
@@ -245,10 +244,10 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         arguments.add(referenceBuildType);
 
         arguments.add("-old");
-        arguments.add(referenceXmlFile.getAbsolutePath());
+        arguments.add(referenceXmlFile);
 
         arguments.add("-new");
-        arguments.add(newXmlFile.getAbsolutePath());
+        arguments.add(newXmlFile);
 
         //--------------------------------------------------------------------------------------------------------------
         // Run the comparison

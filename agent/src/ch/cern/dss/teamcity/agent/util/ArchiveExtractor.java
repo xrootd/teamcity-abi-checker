@@ -19,14 +19,10 @@
 package ch.cern.dss.teamcity.agent.util;
 
 import jetbrains.buildServer.log.Loggers;
-import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;
@@ -48,65 +44,38 @@ public class ArchiveExtractor {
     /**
      * @param archivePath
      * @param outputFolder
-     * @param archiveType
-     *
      * @throws CompressorException
      * @throws ArchiveException
      * @throws IOException
      * @throws InterruptedException
      */
-    public void extract(String archivePath, String outputFolder, String archiveType)
+    public void extract(String archivePath, String outputFolder)
             throws CompressorException, ArchiveException, IOException, InterruptedException {
         logger.message("Extracting archive: " + archivePath);
 
-        if (archiveType.equals("tar") && (archivePath.endsWith(".gz") || archivePath.endsWith(".bz2"))) {
-            archivePath = decompress(archivePath);
-        } else if (archiveType.equalsIgnoreCase("rpm") && archivePath.endsWith("rpm")) {
-            archivePath = rpm2cpio(archivePath);
-            archiveType = "cpio";
-        }
-
         File folder = new File(outputFolder);
-        folder.mkdirs();
-
-        BufferedInputStream in = new BufferedInputStream(new FileInputStream(archivePath));
-        ArchiveInputStream input;
-
-        input = new ArchiveStreamFactory().createArchiveInputStream(archiveType, in);
-
-        final byte[] buffer = new byte[4096];
-        ArchiveEntry archiveEntry;
-
-        while ((archiveEntry = input.getNextEntry()) != null) {
-            String newFileName = archiveEntry.getName();
-
-            File newFile = new File(outputFolder + File.separator + newFileName);
-            Loggers.AGENT.debug("Extracting: " + newFile);
-
-            if (!archiveEntry.isDirectory()) {
-                newFile.getParentFile().mkdirs();
-                newFile.createNewFile();
-
-                BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(newFile));
-                int numBytes;
-                while ((numBytes = input.read(buffer, 0, buffer.length)) != -1)
-                    out.write(buffer, 0, numBytes);
-                out.flush();
-                out.close();
-            } else {
-                newFile.mkdirs();
-            }
-
+        if (!folder.exists()) {
+            folder.mkdirs();
         }
-        input.close();
 
+        if (archivePath.endsWith(".gz") || archivePath.endsWith(".tgz") || archivePath.endsWith(".bz2")) {
+            archivePath = decompress(archivePath);
+            extractTar(archivePath, outputFolder);
+        } else if (archivePath.endsWith(".rpm")) {
+            archivePath = rpm2cpio(archivePath);
+            extractCpio(archivePath, outputFolder);
+        } else if (archivePath.endsWith(".cpio")) {
+            extractCpio(archivePath, outputFolder);
+        } else if (archivePath.endsWith(".zip")) {
+            extractZip(archivePath, outputFolder);
+        } else {
+            throw new IOException("Unsupported archive type: " + archivePath);
+        }
     }
 
     /**
      * @param archivePath
-     *
      * @return
-     *
      * @throws ArchiveException
      * @throws IOException
      * @throws CompressorException
@@ -119,7 +88,7 @@ public class ArchiveExtractor {
 
         final BufferedInputStream is = new BufferedInputStream(new FileInputStream(archivePath));
         CompressorInputStream in = new CompressorStreamFactory().createCompressorInputStream(is);
-        IOUtils.copy(in, new FileOutputStream(tarPath));
+        org.apache.commons.compress.utils.IOUtils.copy(in, new FileOutputStream(tarPath));
         in.close();
 
         return tarPath;
@@ -127,9 +96,7 @@ public class ArchiveExtractor {
 
     /**
      * @param archivePath
-     *
      * @return
-     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -143,6 +110,70 @@ public class ArchiveExtractor {
         int returnCode = ch.cern.dss.teamcity.agent.util.IOUtils.runSystemCommand(rpm2cpioCommand);
         Loggers.AGENT.debug("rpm2cpio returned with code " + returnCode);
         return cpioPath;
+    }
+
+    /**
+     * <ugly_hack>The cpio command doesn't allow you to specify an output directory, and running commands with
+     * ProcessBuilder in different directories is a pain, so we write a small script to a file and execute that
+     * instead.</ugly_hack>
+     *
+     * @param archivePath
+     * @param outputFolder
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void extractCpio(String archivePath, String outputFolder) throws IOException, InterruptedException {
+
+        String command = "#!/bin/sh\n" +
+                "cd %working_directory%\n" +
+                "cpio -idmv < %cpio_file%\n";
+
+        command = command.replace("%cpio_file%", archivePath);
+        command = command.replace("%working_directory%", outputFolder);
+        System.out.println(command);
+        IOUtils.writeFile("extract-cpio.sh", command);
+        new File("extract-cpio.sh").setExecutable(true);
+
+        ProcessBuilder builder = new ProcessBuilder("./extract-cpio.sh");
+        builder.redirectErrorStream(true);
+
+        Process process = builder.start();
+
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream()));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+
+        System.out.println("Exit value: " + process.waitFor());
+        process.getInputStream().close();
+        process.getOutputStream().close();
+        process.getErrorStream().close();
+
+    }
+
+    /**
+     * @param archivePath
+     * @param outputFolder
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void extractTar(String archivePath, String outputFolder) throws IOException, InterruptedException {
+        String[] command = {"tar", "-xf", archivePath, "-C", outputFolder};
+        IOUtils.runSystemCommand(command);
+    }
+
+    /**
+     * @param archivePath
+     * @param outputFolder
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void extractZip(String archivePath, String outputFolder) throws IOException, InterruptedException {
+        String[] command = {"unzip", archivePath, "-d", outputFolder};
+        IOUtils.runSystemCommand(command);
     }
 
 }

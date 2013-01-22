@@ -34,20 +34,20 @@ public interface AbiCheckerConstants {
     @NotNull
     @NonNls
     String DISPLAY_NAME = "ABI Compatibility Checker";
-    String UI_PREFIX = "ui-" + TYPE + "-";
-    String UI_PROJECT_NAME = UI_PREFIX + "project-name";
-    String UI_BUILD_TYPE = UI_PREFIX + "build-type";
-    String UI_REFERENCE_TAG = UI_PREFIX + "reference-tag";
-    String UI_ABI_CHECKER_EXECUTABLE_PATH = UI_PREFIX + "executable-path";
-    String UI_ARTIFACT_FILES = UI_PREFIX + "artifact-files";
-    String UI_ARTIFACT_TYPE = UI_PREFIX + "artifact-type";
-    String UI_ARTIFACT_HEADER_FILES = UI_PREFIX + "artifact-header-files";
-    String UI_ARTIFACT_LIBRARY_FILES = UI_PREFIX + "artifact-library-files";
-    String UI_GCC_OPTIONS = UI_PREFIX + "gcc-options";
 
-    String UI_ARTIFACT_TYPE_RPM = "RPM";
-    String UI_ARTIFACT_TYPE_ARCHIVE = "Archive";
-    String UI_ARTIFACT_TYPE_FOLDER = "Folder";
+    String BUILD_TYPE_NAME = "build-type-name";
+    String BUILD_TYPE = "build-type";
+    String REFERENCE_TAG = "reference-tag";
+    String EXECUTABLE_PATH = "executable-path";
+    String ARTIFACT_FILES = "artifact-files";
+    String ARTIFACT_TYPE = "artifact-type";
+    String ARTIFACT_HEADER_FILES = "artifact-header-files";
+    String ARTIFACT_LIBRARY_FILES = "artifact-library-files";
+    String GCC_OPTIONS = "gcc-options";
+
+    String ARTIFACT_TYPE_RPM = "RPM";
+    String ARTIFACT_TYPE_ARCHIVE = "Archive";
+    String ARTIFACT_TYPE_FOLDER = "Folder";
 
     String TAB_ID = "abiCheckerReport";
     String TAB_TITLE = "ABI Compatibility Report";

@@ -30,7 +30,7 @@
 <c:set var="changeTags">
     var TagHandler = {
     requestTags: function () {
-    var buildType = jQuery('#ui-abi-checker-build-type option:selected').val();
+    var buildType = jQuery('#${abiCheckerBean.buildTypeKey} option:selected').val();
 
     BS.ajaxRequest('/requestTags.html', {
     parameters: 'buildTypeId=' + buildType,
@@ -52,15 +52,15 @@
     var xmlDoc = jQuery.parseXML(tags);
     var xml = jQuery(xmlDoc);
 
-    jQuery('#ui-abi-checker-reference-tag').empty();
+    jQuery('#${abiCheckerBean.referenceTagKey}').empty();
 
     xml.find('tag').each(function () {
     tag = jQuery(this).text();
     option = '<option value=&quot;' + tag + '&quot;>' + tag + '</option>';
-    jQuery('#ui-abi-checker-reference-tag').append(option);
+    jQuery('#${abiCheckerBean.referenceTagKey}').append(option);
     });
 
-    jQuery('#ui-abi-checker-reference-tag option:first-child').attr('selected', true);
+    jQuery('#${abiCheckerBean.referenceTagKey} option:first-child').attr('selected', true);
     }
     };
     TagHandler.requestTags();
@@ -148,7 +148,7 @@
                                      expanded="true"/>
             <span class="error" id="error_${abiCheckerBean.artifactHeaderFilesKey}"></span>
         <span class="smallNote">Specify the header files <b>(inside the artifact)</b> to be checked. Wildcards accepted
-            (e.g. /usr/include/foo/*.h).</span>
+            (e.g. include/foo/*.h).</span>
         </td>
     </tr>
     <tr>
@@ -161,7 +161,7 @@
                                      expanded="true"/>
             <span class="error" id="error_${abiCheckerBean.artifactLibraryFilesKey}"></span>
         <span class="smallNote">Specify the shared library files <b>(inside the artifact)</b> to be checked. Wildcards
-            accepted (e.g. /usr/lib64/*.so)</span>
+            accepted (e.g. lib64/*.so)</span>
         </td>
     </tr>
     <tr>

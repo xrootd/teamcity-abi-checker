@@ -28,6 +28,7 @@ import jetbrains.buildServer.serverSide.artifacts.BuildArtifactsViewMode;
 import jetbrains.buildServer.web.openapi.PagePlaces;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.ViewLogTab;
+import jetbrains.buildServer.web.reportTabs.ReportTabUtil;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,16 +60,12 @@ public class CompatibilityReportTab extends ViewLogTab {
         BuildArtifacts buildArtifacts = build.getArtifacts(BuildArtifactsViewMode.VIEW_DEFAULT);
         BuildArtifact reportPage = buildArtifacts.getArtifact(AbiCheckerConstants.REPORT_FILE);
         String s = IOUtils.toString(reportPage.getInputStream(), "UTF-8");
-        Loggers.SERVER.info("Report page: " + s);
         return s;
     }
 
     @Override
     protected boolean isAvailable(@NotNull HttpServletRequest request, @NotNull SBuild build) {
-//        return super.isAvailable(request, build)
-//                && (ReportTabUtil.isAvailable(build, getInternalArtifactPath(AbiCheckerConstants.REPORT_FILE))
-//                || ReportTabUtil.isAvailable(build, AbiCheckerConstants.REPORT_FILE));
-        return true;
+        return super.isAvailable(request, build) && ReportTabUtil.isAvailable(build, AbiCheckerConstants.REPORT_FILE);
     }
 
 }

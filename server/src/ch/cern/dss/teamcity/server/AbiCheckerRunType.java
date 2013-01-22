@@ -124,14 +124,16 @@ public class AbiCheckerRunType extends RunType {
     public String describeParameters(@NotNull Map<String, String> parameters) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Reference build type: ").append(projectManager.findBuildTypeById(
-                parameters.get(AbiCheckerConstants.UI_BUILD_TYPE)).getName()).append("\n");
-        sb.append("Reference tag: ").append(parameters.get(AbiCheckerConstants.UI_REFERENCE_TAG)).append("\n");
-        sb.append("Artifact files: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_FILES)).append("\n");
-        sb.append("Artifact type: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_TYPE)).append("\n");
-        sb.append("Header files: ").append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_HEADER_FILES)).append("\n");
+        parameters.put(AbiCheckerConstants.BUILD_TYPE_NAME, projectManager.findBuildTypeById(
+                parameters.get(AbiCheckerConstants.BUILD_TYPE)).getName());
+
+        sb.append("Reference build type: ").append(parameters.get(AbiCheckerConstants.BUILD_TYPE_NAME)).append("\n");
+        sb.append("Reference tag: ").append(parameters.get(AbiCheckerConstants.REFERENCE_TAG)).append("\n");
+        sb.append("Artifact files: ").append(parameters.get(AbiCheckerConstants.ARTIFACT_FILES)).append("\n");
+        sb.append("Artifact type: ").append(parameters.get(AbiCheckerConstants.ARTIFACT_TYPE)).append("\n");
+        sb.append("Header files: ").append(parameters.get(AbiCheckerConstants.ARTIFACT_HEADER_FILES)).append("\n");
         sb.append("Shared library files: ")
-                .append(parameters.get(AbiCheckerConstants.UI_ARTIFACT_LIBRARY_FILES)).append("\n");
+                .append(parameters.get(AbiCheckerConstants.ARTIFACT_LIBRARY_FILES)).append("\n");
 
         return sb.toString();
     }

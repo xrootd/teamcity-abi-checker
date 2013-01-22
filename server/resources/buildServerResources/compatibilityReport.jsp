@@ -3,4 +3,4 @@
 
 <jsp:useBean id="compatibilityReport" type="java.lang.String" scope="request" />
 
-<h1>${compatibilityReport}</h1>
+${compatibilityReport}

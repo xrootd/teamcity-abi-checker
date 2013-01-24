@@ -111,8 +111,8 @@ public class ArchiveExtractor {
                 "/bin/sh",
                 "-c",
                 "/usr/bin/rpm2cpio " + archivePath + " > " + cpioPath};
-        int returnCode = ch.cern.dss.teamcity.agent.util.IOUtils.runSystemCommand(rpm2cpioCommand);
-        Loggers.AGENT.debug("rpm2cpio returned with code " + returnCode);
+        SystemCommandResult result = ch.cern.dss.teamcity.agent.util.IOUtils.runSystemCommand(rpm2cpioCommand);
+        Loggers.AGENT.debug("rpm2cpio returned with code " + result.getReturnCode());
         return cpioPath;
     }
 

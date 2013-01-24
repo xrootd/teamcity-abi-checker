@@ -22,6 +22,9 @@ import jetbrains.buildServer.log.Loggers;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 
 /**
  *
@@ -36,14 +39,19 @@ public class IOUtils {
      * @throws InterruptedException
      * @throws IOException
      */
-    public static int runSystemCommand(String[] command) throws InterruptedException, IOException {
+    public static SystemCommandResult runSystemCommand(String[] command) throws InterruptedException, IOException {
 
         Process process = Runtime.getRuntime().exec(command);
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(
                         new BufferedInputStream(process.getInputStream())));
 
-        while (reader.readLine() != null) ;
+        StringBuffer buffer = new StringBuffer();
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            buffer.append(line);
+        }
 
         try {
             if (process.waitFor() != 0) {
@@ -53,7 +61,7 @@ public class IOUtils {
             reader.close();
         }
 
-        return process.exitValue();
+        return new SystemCommandResult(process.exitValue(), buffer.toString());
     }
 
     /**
@@ -79,6 +87,24 @@ public class IOUtils {
                 in.close();
             if (out != null)
                 out.close();
+        }
+    }
+
+    /**
+     *
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    public static String readFile(String path) throws IOException {
+        FileInputStream stream = new FileInputStream(new File(path));
+        try {
+            FileChannel channel = stream.getChannel();
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+            return Charset.defaultCharset().decode(buffer).toString();
+        }
+        finally {
+            stream.close();
         }
     }
 

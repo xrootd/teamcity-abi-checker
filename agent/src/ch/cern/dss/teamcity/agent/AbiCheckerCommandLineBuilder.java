@@ -18,6 +18,7 @@
 
 package ch.cern.dss.teamcity.agent;
 
+import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.util.StringUtil;
@@ -33,6 +34,7 @@ import java.util.Vector;
  */
 public class AbiCheckerCommandLineBuilder {
 
+    private final SimpleLogger logger;
     private final Map<String, String> runnerParameters;
     private final List<String> libNames;
     private final File referenceXmlFile;
@@ -41,17 +43,19 @@ public class AbiCheckerCommandLineBuilder {
 
     /**
      *
+     * @param logger
      * @param runnerParameters
      * @param libNames
      * @param referenceXmlFile
      * @param newXmlFile
      * @param artifactsPaths
      */
-    public AbiCheckerCommandLineBuilder(final Map<String, String> runnerParameters,
+    public AbiCheckerCommandLineBuilder(SimpleLogger logger, final Map<String, String> runnerParameters,
                                         final List<String> libNames,
                                         final File referenceXmlFile,
                                         final File newXmlFile,
                                         final String artifactsPaths) {
+        this.logger = logger;
         this.runnerParameters = runnerParameters;
         this.libNames = libNames;
         this.referenceXmlFile = referenceXmlFile;
@@ -64,9 +68,17 @@ public class AbiCheckerCommandLineBuilder {
      * @return
      */
     @NotNull
-    public List<String> getArguments() {
+    public List<String> getArguments() throws RunBuildException {
+        if (runnerParameters.get(AbiCheckerConstants.BUILD_MODE).equals(AbiCheckerConstants.BUILD_MODE_MOCK)) {
+            setupMockEnvironment();
+            return getMockModeArguments();
+        } else {
+            return getNormalModeArguments();
+        }
+    }
+
+    private List<String> getNormalModeArguments() {
         List<String> arguments = new Vector<String>();
-        
         arguments.add("-show-retval");
 
         arguments.add("-lib");
@@ -87,6 +99,14 @@ public class AbiCheckerCommandLineBuilder {
         return arguments;
     }
 
+    private List<String> getMockModeArguments() {
+        List<String> arguments = new Vector<String>();
+
+        
+
+        return arguments;
+    }
+
     /**
      *
      * @return
@@ -103,5 +123,20 @@ public class AbiCheckerCommandLineBuilder {
             throw new RunBuildException("Unknown build mode: " + runnerParameters.get(AbiCheckerConstants.BUILD_MODE));
         }
         return executable;
+    }
+
+    /**
+     * @throws RunBuildException
+     */
+    private void setupMockEnvironment() throws RunBuildException {
+        logger.message("Setting up mock environment");
+
+        File mockMetaDirectory = new File(artifactsPaths, AbiCheckerConstants.MOCK_META_DIRECTORY);
+        if (!mockMetaDirectory.exists() || !mockMetaDirectory.isDirectory()) {
+            throw new RunBuildException("Cannot setup mock environment: directory not found: "
+                    + mockMetaDirectory);
+        }
+
+        new MockEnvironmentBuilder(mockMetaDirectory, logger).setup();
     }
 }

@@ -99,7 +99,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         List<String> matchedNewArtifacts = findFiles(newArtifactFolder, referenceArtifactFilePattern);
 
         // Extract the newly built files if necessary
-        setNewArtifactsDirectory(newArtifactFolder + File.separator + "extracted");
+        setNewArtifactsDirectory(getWorkingDirectory() + File.separator + "extracted");
         if (referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_RPM)
                 || referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_ARCHIVE)) {
 
@@ -108,11 +108,81 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
                 extractArtifacts(artifact, newArtifactsDirectory);
             }
         }
+    }
 
-        // Are we in mock mode? If so, set up the chroots.
-        if (getRunnerParameters().get(AbiCheckerConstants.BUILD_MODE) == AbiCheckerConstants.BUILD_MODE_MOCK) {
-            setupMockEnvironment();
+    /**
+     * @return
+     * @throws RunBuildException
+     */
+    @NotNull
+    @Override
+    public ProgramCommandLine makeProgramCommandLine() throws RunBuildException {
+        final Map<String, String> runnerParameters = getRunnerParameters();
+
+        String referenceTag = runnerParameters.get(AbiCheckerConstants.REFERENCE_TAG);
+        String gccOptions = runnerParameters.get(AbiCheckerConstants.GCC_OPTIONS);
+
+        // Find the header and library files
+        String headerFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_HEADER_FILES);
+        String libraryFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_LIBRARY_FILES);
+
+        List<String> matchedReferenceHeaderFiles = findFiles(referenceArtifactsDirectory, headerFiles);
+        List<String> matchedReferenceLibraryFiles = findFiles(referenceArtifactsDirectory, libraryFiles);
+        List<String> matchedNewHeaderFiles = findFiles(newArtifactsDirectory, headerFiles);
+        List<String> matchedNewLibraryFiles = findFiles(newArtifactsDirectory, libraryFiles);
+
+        // Write the XML files
+        String referenceXmlFileName = getBuildTempDirectory() + File.separator + referenceTag + ".xml";
+        File referenceXmlFile = writeXmlDescriptor(referenceXmlFileName,
+                runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE_NAME) + " " + referenceTag,
+                matchedReferenceHeaderFiles,
+                matchedReferenceLibraryFiles,
+                gccOptions);
+
+        String newXmlFileName = getBuildTempDirectory() + File.separator
+                + getRunnerContext().getBuild().getBuildNumber() + ".xml";
+        File newXmlFile = writeXmlDescriptor(newXmlFileName,
+                getRunnerContext().getBuild().getBuildTypeName() + " build #"
+                        + getRunnerContext().getBuild().getBuildNumber(),
+                matchedNewHeaderFiles,
+                matchedNewLibraryFiles,
+                gccOptions);
+
+        // Build the arguments
+        List<String> libNames = new ArrayList<String>();
+        for (String libName : matchedReferenceLibraryFiles) {
+            libNames.add(new File(libName).getName());
         }
+
+        final AbiCheckerCommandLineBuilder commandLineBuilder = new AbiCheckerCommandLineBuilder(logger,
+                runnerParameters, libNames, referenceXmlFile, newXmlFile, getBuild().getArtifactsPaths());
+
+        // Run the command
+        return new ProgramCommandLine() {
+            @NotNull
+            @Override
+            public String getExecutablePath() throws RunBuildException {
+                return commandLineBuilder.getExecutablePath();
+            }
+
+            @NotNull
+            @Override
+            public String getWorkingDirectory() throws RunBuildException {
+                return getCheckoutDirectory().getPath();
+            }
+
+            @NotNull
+            @Override
+            public List<String> getArguments() throws RunBuildException {
+                return commandLineBuilder.getArguments();
+            }
+
+            @NotNull
+            @Override
+            public Map<String, String> getEnvironment() throws RunBuildException {
+                return getBuildParameters().getEnvironmentVariables();
+            }
+        };
     }
 
     /**
@@ -216,89 +286,6 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
     }
 
     /**
-     * @throws RunBuildException
-     */
-    private void setupMockEnvironment() throws RunBuildException {
-        new MockEnvironmentBuilder(referenceArtifactsDirectory);
-    }
-
-    /**
-     * @return
-     * @throws RunBuildException
-     */
-    @NotNull
-    @Override
-    public ProgramCommandLine makeProgramCommandLine() throws RunBuildException {
-        final Map<String, String> runnerParameters = getRunnerParameters();
-        logger.message(">>>>> Running makeProgramCommandLine()");
-
-        String referenceTag = runnerParameters.get(AbiCheckerConstants.REFERENCE_TAG);
-        String gccOptions = runnerParameters.get(AbiCheckerConstants.GCC_OPTIONS);
-
-        // Find the header and library files
-        String headerFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_HEADER_FILES);
-        String libraryFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_LIBRARY_FILES);
-
-        List<String> matchedReferenceHeaderFiles = findFiles(referenceArtifactsDirectory, headerFiles);
-        List<String> matchedReferenceLibraryFiles = findFiles(referenceArtifactsDirectory, libraryFiles);
-        List<String> matchedNewHeaderFiles = findFiles(newArtifactsDirectory, headerFiles);
-        List<String> matchedNewLibraryFiles = findFiles(newArtifactsDirectory, libraryFiles);
-
-        // Write the XML files
-        String referenceXmlFileName = getBuildTempDirectory() + File.separator + referenceTag + ".xml";
-        File referenceXmlFile = writeXmlDescriptor(referenceXmlFileName,
-                runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE_NAME) + " " + referenceTag,
-                matchedReferenceHeaderFiles,
-                matchedReferenceLibraryFiles,
-                gccOptions);
-
-        String newXmlFileName = getBuildTempDirectory() + File.separator
-                + getRunnerContext().getBuild().getBuildNumber() + ".xml";
-        File newXmlFile = writeXmlDescriptor(newXmlFileName,
-                getRunnerContext().getBuild().getBuildTypeName() + " build #"
-                        + getRunnerContext().getBuild().getBuildNumber(),
-                matchedNewHeaderFiles,
-                matchedNewLibraryFiles,
-                gccOptions);
-
-        // Build the arguments
-        List<String> libNames = new ArrayList<String>();
-        for (String libName : matchedReferenceLibraryFiles) {
-            libNames.add(new File(libName).getName());
-        }
-
-        final AbiCheckerCommandLineBuilder commandLineBuilder = new AbiCheckerCommandLineBuilder(
-                runnerParameters, libNames, referenceXmlFile, newXmlFile, getBuild().getArtifactsPaths());
-
-        // Run the command
-        return new ProgramCommandLine() {
-            @NotNull
-            @Override
-            public String getExecutablePath() throws RunBuildException {
-                return commandLineBuilder.getExecutablePath();
-            }
-
-            @NotNull
-            @Override
-            public String getWorkingDirectory() throws RunBuildException {
-                return getCheckoutDirectory().getPath();
-            }
-
-            @NotNull
-            @Override
-            public List<String> getArguments() throws RunBuildException {
-                return commandLineBuilder.getArguments();
-            }
-
-            @NotNull
-            @Override
-            public Map<String, String> getEnvironment() throws RunBuildException {
-                return getBuildParameters().getEnvironmentVariables();
-            }
-        };
-    }
-
-    /**
      * Returns *absolute* path
      *
      * @param filePath
@@ -348,14 +335,14 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
     /**
      * @param referenceArtifactsDirectory
      */
-    public void setReferenceArtifactsDirectory(String referenceArtifactsDirectory) {
+    private void setReferenceArtifactsDirectory(String referenceArtifactsDirectory) {
         this.referenceArtifactsDirectory = referenceArtifactsDirectory;
     }
 
     /**
      * @param newArtifactsDirectory
      */
-    public void setNewArtifactsDirectory(String newArtifactsDirectory) {
+    private void setNewArtifactsDirectory(String newArtifactsDirectory) {
         this.newArtifactsDirectory = newArtifactsDirectory;
     }
 }

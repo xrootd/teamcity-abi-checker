@@ -54,4 +54,10 @@ public interface AbiCheckerConstants {
     String REPORT_FILE = "/abi-checker-report/compatibility-report.html";
 
     String MOCK_EXECUTABLE = "/usr/bin/mock";
+    String MOCK_CONFIG_DIRECTORY = "/etc/mock";
+    String MOCK_CHROOT_DIRECTORY = "/var/lib/mock";
+    String MOCK_RESULTS_DIR = "/var/lib/mock/__CHROOT__/result";
+    String MOCK_GROUP = "mock";
+    String MOCK_META_DIRECTORY = "meta";
+    String MOCK_META_FILE = "mock";
 }

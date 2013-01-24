@@ -25,16 +25,16 @@ import org.jetbrains.annotations.NotNull;
  * Simple spring bean (defined in ../META-INF/build-server-plugin-abi-checker-xml) to provide identification constants
  * to the web UI forms.
  */
-public class AbiCheckerBean {
+public class AbiCheckerConstantsBean {
 
     @NotNull
-    public String getBuildTypeKey() {
-        return AbiCheckerConstants.BUILD_TYPE;
+    public String getReferenceBuildTypeKey() {
+        return AbiCheckerConstants.REFERENCE_BUILD_TYPE;
     }
 
     @NotNull
-    public String getBuildTypeNameKey() {
-        return AbiCheckerConstants.BUILD_TYPE_NAME;
+    public String getReferenceBuildTypeNameKey() {
+        return AbiCheckerConstants.REFERENCE_BUILD_TYPE_NAME;
     }
 
     @NotNull
@@ -43,13 +43,18 @@ public class AbiCheckerBean {
     }
 
     @NotNull
-    public String getAbiCheckerExecutablePathKey() {
-        return AbiCheckerConstants.EXECUTABLE_PATH;
+    public String getBuildModeKey() {
+        return AbiCheckerConstants.BUILD_MODE;
     }
 
     @NotNull
-    public String getArtifactFilesKey() {
-        return AbiCheckerConstants.ARTIFACT_FILES;
+    public String getBuildModeNormalKey() {
+        return AbiCheckerConstants.BUILD_MODE_NORMAL;
+    }
+
+    @NotNull
+    public String getBuildModeMockKey() {
+        return AbiCheckerConstants.BUILD_MODE_MOCK;
     }
 
     @NotNull
@@ -70,6 +75,16 @@ public class AbiCheckerBean {
     @NotNull
     public String getArtifactTypeFolderKey() {
         return AbiCheckerConstants.ARTIFACT_TYPE_FOLDER;
+    }
+
+    @NotNull
+    public String getArtifactFilesKey() {
+        return AbiCheckerConstants.ARTIFACT_FILES;
+    }
+
+    @NotNull
+    public String getAbiCheckerExecutablePathKey() {
+        return AbiCheckerConstants.EXECUTABLE_PATH;
     }
 
     @NotNull

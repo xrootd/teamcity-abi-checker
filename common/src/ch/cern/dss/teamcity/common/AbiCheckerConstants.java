@@ -35,21 +35,28 @@ public interface AbiCheckerConstants {
     @NonNls
     String DISPLAY_NAME = "ABI Compatibility Checker";
 
-    String BUILD_TYPE_NAME = "build-type-name";
-    String BUILD_TYPE = "build-type";
+    String REFERENCE_BUILD_TYPE = "build-type";
+    String REFERENCE_BUILD_TYPE_NAME = "build-type-name";
     String REFERENCE_TAG = "reference-tag";
-    String EXECUTABLE_PATH = "executable-path";
-    String ARTIFACT_FILES = "artifact-files";
-    String ARTIFACT_TYPE = "artifact-type";
-    String ARTIFACT_HEADER_FILES = "artifact-header-files";
-    String ARTIFACT_LIBRARY_FILES = "artifact-library-files";
-    String GCC_OPTIONS = "gcc-options";
 
+    String BUILD_MODE = "build-mode";
+    String BUILD_MODE_NORMAL = "build-mode-normal";
+    String BUILD_MODE_MOCK = "build-mode-mock";
+
+    String ARTIFACT_TYPE = "artifact-type";
     String ARTIFACT_TYPE_RPM = "RPM";
     String ARTIFACT_TYPE_ARCHIVE = "Archive";
     String ARTIFACT_TYPE_FOLDER = "Folder";
 
+    String ARTIFACT_FILES = "artifact-files";
+
+    String EXECUTABLE_PATH = "executable-path";
+    String ARTIFACT_HEADER_FILES = "artifact-header-files";
+    String ARTIFACT_LIBRARY_FILES = "artifact-library-files";
+    String GCC_OPTIONS = "gcc-options";
+
+
     String TAB_ID = "abiCheckerReport";
     String TAB_TITLE = "ABI Compatibility Report";
-    String REPORT_FILE = "/abi-checker-report/abi_compat_report.html";
+    String REPORT_FILE = "/abi-checker-report/compatibility-report.html";
 }

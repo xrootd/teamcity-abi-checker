@@ -78,7 +78,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         final Map<String, String> environment = new HashMap<String, String>(System.getenv());
         environment.putAll(getBuildParameters().getEnvironmentVariables());
 
-        String referenceBuildType = runnerParameters.get(AbiCheckerConstants.BUILD_TYPE);
+        String referenceBuildType = runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE);
         String referenceTag = runnerParameters.get(AbiCheckerConstants.REFERENCE_TAG);
         String referenceArtifactType = runnerParameters.get(AbiCheckerConstants.ARTIFACT_TYPE);
         String headerFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_HEADER_FILES);
@@ -211,7 +211,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         // Write the XML files
         //--------------------------------------------------------------------------------------------------------------
         String referenceXmlDescriptor = "" +
-                "<version>" + runnerParameters.get(AbiCheckerConstants.BUILD_TYPE_NAME)
+                "<version>" + runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE_NAME)
                 + " " + referenceTag + "</version>" +
                 "<headers>" + StringUtil.join(matchedReferenceHeaderFiles, "\n") + "</headers>" +
                 "<libs>" + StringUtil.join(matchedReferenceLibraryFiles, "\n") + "</libs>" +

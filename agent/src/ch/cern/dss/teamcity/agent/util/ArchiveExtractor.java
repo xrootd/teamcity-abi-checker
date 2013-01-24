@@ -53,6 +53,10 @@ public class ArchiveExtractor {
             throws CompressorException, ArchiveException, IOException, InterruptedException {
         logger.message("Extracting archive: " + archivePath);
 
+        if (!new File(archivePath).exists()) {
+            throw new FileNotFoundException("Archive not found: " + archivePath);
+        }
+
         File folder = new File(outputFolder);
         if (!folder.exists()) {
             folder.mkdirs();

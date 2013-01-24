@@ -25,14 +25,8 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public interface AbiCheckerConstants {
-    @NotNull
-    @NonNls
     String TYPE = "abi-checker";
-    @NotNull
-    @NonNls
     String DESCRIPTION = "Checking binary compatibility of new shared libraries with previous versions";
-    @NotNull
-    @NonNls
     String DISPLAY_NAME = "ABI Compatibility Checker";
 
     String REFERENCE_BUILD_TYPE = "build-type";
@@ -55,8 +49,9 @@ public interface AbiCheckerConstants {
     String ARTIFACT_LIBRARY_FILES = "artifact-library-files";
     String GCC_OPTIONS = "gcc-options";
 
-
     String TAB_ID = "abiCheckerReport";
     String TAB_TITLE = "ABI Compatibility Report";
     String REPORT_FILE = "/abi-checker-report/compatibility-report.html";
+
+    String MOCK_EXECUTABLE = "/usr/bin/mock";
 }

@@ -26,7 +26,6 @@ import com.intellij.openapi.util.SystemInfo;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.runner.BuildServiceAdapter;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
-import jetbrains.buildServer.agent.runner.SimpleProgramCommandLine;
 import jetbrains.buildServer.util.AntPatternFileFinder;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -38,29 +37,189 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Provides an environment in which to execute the abi-compatibility-checker program and associated command line
+ * arguments. Also supports setting up mock environments and checking compatibility inside them, depending upon
+ * runner parameters.
  */
 public class AbiCheckerBuildService extends BuildServiceAdapter {
 
     private SimpleLogger logger;
+    private ArchiveExtractor archiveExtractor;
+    private String referenceArtifactsDirectory;
+    private String newArtifactsDirectory;
 
     /**
-     * @param string
-     * @return
+     * This method is called before command line preparation has started.
+     * <p/>
+     * Here we download and extract the reference artifacts, extract the newly build artifacts (if necessary) and
+     * resolve the wildcard paths to the artifacts that we actually want to use.
+     *
+     * @throws RunBuildException
      */
-    private static String[] splitFileWildcards(final String string) {
-        if (string != null) {
-            final String filesStringWithSpaces = string.replace('\n', ' ').replace('\r', ' ').replace('\\', '/');
-            final List<String> split = StringUtil.splitCommandArgumentsAndUnquote(filesStringWithSpaces);
-            return split.toArray(new String[split.size()]);
+    @Override
+    public void beforeProcessStarted() throws RunBuildException {
+        super.beforeProcessStarted();
+
+        this.logger = new SimpleLogger(getLogger());
+        this.archiveExtractor = new ArchiveExtractor(this.logger);
+        final Map<String, String> runnerParameters = getRunnerParameters();
+
+        String referenceBuildType = runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE);
+        String referenceTag = runnerParameters.get(AbiCheckerConstants.REFERENCE_TAG);
+        String referenceArtifactType = runnerParameters.get(AbiCheckerConstants.ARTIFACT_TYPE);
+
+        // Download reference artifact zip
+        String referenceArtifactZipFile = downloadReferenceArtifacts(referenceBuildType, referenceTag);
+
+        // Extract downloaded artifact zip
+        setReferenceArtifactsDirectory(getBuildTempDirectory().getAbsolutePath() + "/artifacts-" + referenceTag);
+        extractArtifacts(referenceArtifactZipFile, referenceArtifactsDirectory);
+
+        // Find the extracted reference files
+        String referenceArtifactFilePattern = runnerParameters.get(AbiCheckerConstants.ARTIFACT_FILES);
+        List<String> matchedReferenceArtifacts = findFiles(referenceArtifactsDirectory,
+                referenceArtifactFilePattern);
+
+        // Extract the reference files if necessary
+        if (referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_RPM)
+                || referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_ARCHIVE)) {
+
+            logger.message("Extracting reference files");
+            for (String artifact : matchedReferenceArtifacts) {
+                extractArtifacts(artifact, referenceArtifactsDirectory);
+            }
         }
 
-        return new String[0];
+        // Find the newly built files
+        String newArtifactFolder = getRunnerContext().getBuild().getArtifactsPaths();
+        List<String> matchedNewArtifacts = findFiles(newArtifactFolder, referenceArtifactFilePattern);
+
+        // Extract the newly built files if necessary
+        setNewArtifactsDirectory(newArtifactFolder + File.separator + "extracted");
+        if (referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_RPM)
+                || referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_ARCHIVE)) {
+
+            logger.message("Extracting new files");
+            for (String artifact : matchedNewArtifacts) {
+                extractArtifacts(artifact, newArtifactsDirectory);
+            }
+        }
+
+        // Are we in mock mode? If so, set up the chroots.
+        if (getRunnerParameters().get(AbiCheckerConstants.BUILD_MODE) == AbiCheckerConstants.BUILD_MODE_MOCK) {
+            setupMockEnvironment();
+        }
+    }
+
+    /**
+     * Query the server for the build ID of the build we are referencing, then use this build ID do download a zip
+     * file of the reference artifacts. We use the TeamCity REST API for convenience.
+     *
+     * @param buildType the reference build type ID, e.g. bt23
+     * @param tag       the tagged reference build that we want to retrieve artifacts for.
+     *
+     * @return absolute path to the downloaded zip file.
+     * @throws RunBuildException to break the build
+     */
+    private String downloadReferenceArtifacts(String buildType, String tag) throws RunBuildException {
+        String serverUrl = getAgentConfiguration().getServerUrl();
+        String restUrl = serverUrl + "/guestAuth/app/rest/builds/buildType:" + buildType + ",tag:"
+                + tag + ",personal:false,count:1,status:SUCCESS";
+        BuildInfoXmlResponseHandler handler = new BuildInfoXmlResponseHandler();
+
+        try {
+            SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+            SAXParser saxParser = saxParserFactory.newSAXParser();
+            saxParser.parse(new InputSource(new URL(restUrl).openStream()), handler);
+
+        } catch (Exception e) {
+            throw new RunBuildException("Error determining build info XML", e);
+        }
+
+        String referenceArtifactDownloadUrl = serverUrl + handler.getArtifactDownloadUrl();
+        String referenceArtifactZipFile = getBuildTempDirectory().getAbsolutePath() + "/artifacts-" + tag + ".zip";
+
+        try {
+            IOUtils.saveUrl(referenceArtifactZipFile, referenceArtifactDownloadUrl);
+        } catch (IOException e) {
+            throw new RunBuildException("Error downloading artifacts", e);
+        }
+
+        return referenceArtifactZipFile;
+    }
+
+    /**
+     * Extract an archive containing artifacts to the specified directory.
+     *
+     * @param artifactArchive     the archive to extract.
+     * @param extractionDirectory the destination directory to extract to.
+     *
+     * @throws RunBuildException to break the build.
+     */
+    private void extractArtifacts(String artifactArchive, String extractionDirectory) throws RunBuildException {
+        try {
+            archiveExtractor.extract(artifactArchive, extractionDirectory);
+        } catch (Exception e) {
+            throw new RunBuildException("Error extracting artifacts", e);
+        }
+    }
+
+    /**
+     * @param searchDirectory
+     * @param filePattern
+     *
+     * @return
+     * @throws RunBuildException
+     */
+    private List<String> findFiles(String searchDirectory, String filePattern) throws RunBuildException {
+        List<String> matchedFiles;
+        try {
+            matchedFiles = matchFiles(searchDirectory, filePattern);
+            if (matchedFiles.size() == 0) {
+                throw new RunBuildException("No files matched the pattern");
+            }
+        } catch (IOException e) {
+            throw new RunBuildException("I/O error while collecting files", e);
+        }
+        return matchedFiles;
+    }
+
+    /**
+     * @param filename
+     * @param version
+     * @param headers
+     * @param libs
+     * @param gccOptions
+     *
+     * @return
+     * @throws RunBuildException
+     */
+    private File writeXmlDescriptor(String filename, String version, List<String> headers, List<String> libs,
+                                    String gccOptions) throws RunBuildException {
+        String descriptor = "" +
+                "<version>" + version + "</version>" +
+                "<headers>" + StringUtil.join(headers, "\n") + "</headers>" +
+                "<libs>" + StringUtil.join(libs, "\n") + "</libs>" +
+                "<gcc_options>" + gccOptions + "</gcc_options>";
+
+        File xmlFile;
+        try {
+            xmlFile = IOUtils.writeFile(filename, descriptor);
+        } catch (IOException e) {
+            throw new RunBuildException("Error writing XML descriptor", e);
+        }
+        return xmlFile;
+    }
+
+    /**
+     * @throws RunBuildException
+     */
+    private void setupMockEnvironment() throws RunBuildException {
+        new MockEnvironmentBuilder(referenceArtifactsDirectory);
     }
 
     /**
@@ -70,203 +229,73 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
     @NotNull
     @Override
     public ProgramCommandLine makeProgramCommandLine() throws RunBuildException {
-        this.logger = new SimpleLogger(getLogger());
-        ArchiveExtractor archiveExtractor = new ArchiveExtractor(this.logger);
-
-        final List<String> arguments = new ArrayList<String>();
         final Map<String, String> runnerParameters = getRunnerParameters();
-        final Map<String, String> environment = new HashMap<String, String>(System.getenv());
-        environment.putAll(getBuildParameters().getEnvironmentVariables());
+        logger.message(">>>>> Running makeProgramCommandLine()");
 
-        String referenceBuildType = runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE);
         String referenceTag = runnerParameters.get(AbiCheckerConstants.REFERENCE_TAG);
-        String referenceArtifactType = runnerParameters.get(AbiCheckerConstants.ARTIFACT_TYPE);
-        String headerFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_HEADER_FILES);
-        String libraryFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_LIBRARY_FILES);
         String gccOptions = runnerParameters.get(AbiCheckerConstants.GCC_OPTIONS);
 
-        //--------------------------------------------------------------------------------------------------------------
-        // Download reference artifact zip artifact
-        //--------------------------------------------------------------------------------------------------------------
-        String serverUrl = getAgentConfiguration().getServerUrl();
-        String restUrl = serverUrl + "/guestAuth/app/rest/builds/buildType:" + referenceBuildType + ",tag:"
-                + referenceTag + ",personal:false,count:1,status:SUCCESS";
-        String referenceArtifactZipUrl;
-
-        try {
-            SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-            SAXParser saxParser = saxParserFactory.newSAXParser();
-            BuildInfoXmlResponseHandler handler = new BuildInfoXmlResponseHandler();
-            saxParser.parse(new InputSource(new URL(restUrl).openStream()), handler);
-            referenceArtifactZipUrl = serverUrl + handler.getArtifactDownloadUrl();
-        } catch (Exception e) {
-            throw new RunBuildException("Error determining build info XML", e);
-        }
-
-        String referenceArtifactZip = getBuildTempDirectory().getAbsolutePath() + "/artifacts-" + referenceTag
-                + ".zip";
-
-        try {
-            IOUtils.saveUrl(referenceArtifactZip, referenceArtifactZipUrl);
-        } catch (IOException e) {
-            throw new RunBuildException("Error downloading artifacts", e);
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
-        // Extract downloaded artifact zip
-        //--------------------------------------------------------------------------------------------------------------
-        String referenceExtractedArtifactFolder = getBuildTempDirectory().getAbsolutePath() + "/artifacts-" + referenceTag;
-        try {
-            archiveExtractor.extract(referenceArtifactZip, referenceExtractedArtifactFolder);
-        } catch (Exception e) {
-            throw new RunBuildException("Error extracting artifacts", e);
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
-        // Find the extracted reference files
-        //--------------------------------------------------------------------------------------------------------------
-        String referenceArtifactFilePattern = runnerParameters.get(AbiCheckerConstants.ARTIFACT_FILES);
-        List<String> matchedReferenceArtifacts;
-        try {
-            matchedReferenceArtifacts = matchFiles(referenceExtractedArtifactFolder, referenceArtifactFilePattern);
-            if (matchedReferenceArtifacts.size() == 0) {
-                throw new RunBuildException("No files matched the pattern");
-            }
-        } catch (IOException e) {
-            throw new RunBuildException("I/O error while collecting files", e);
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
-        // Extract the reference files if necessary
-        //--------------------------------------------------------------------------------------------------------------
-        if (referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_RPM)
-                || referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_ARCHIVE)) {
-
-            logger.message("Extracting reference files");
-            for (String artifact : matchedReferenceArtifacts) {
-                try {
-                    archiveExtractor.extract(artifact, referenceExtractedArtifactFolder);
-                } catch (Exception e) {
-                    throw new RunBuildException("Error extracting artifacts", e);
-                }
-            }
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
-        // Find the newly built files
-        //--------------------------------------------------------------------------------------------------------------
-        String newArtifactFolder = getRunnerContext().getBuild().getArtifactsPaths();
-        List<String> matchedNewArtifacts;
-
-        try {
-            matchedNewArtifacts = matchFiles(newArtifactFolder, referenceArtifactFilePattern);
-            if (matchedNewArtifacts.size() == 0) {
-                throw new RunBuildException("No files matched the pattern");
-            }
-        } catch (IOException e) {
-            throw new RunBuildException("I/O error while collecting files", e);
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
-        // Extract the newly built files if necessary
-        //--------------------------------------------------------------------------------------------------------------
-        File newExtractedArtifactFolder = new File(newArtifactFolder + File.separator + "extracted");
-
-        if (referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_RPM)
-                || referenceArtifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_ARCHIVE)) {
-
-            logger.message("Extracting new files");
-            newExtractedArtifactFolder.mkdirs();
-
-            for (String artifact : matchedNewArtifacts) {
-                try {
-                    archiveExtractor.extract(artifact, newExtractedArtifactFolder.getAbsolutePath());
-                } catch (Exception e) {
-                    throw new RunBuildException("Error extracting artifacts", e);
-                }
-            }
-        }
-
-        //--------------------------------------------------------------------------------------------------------------
         // Find the header and library files
-        //--------------------------------------------------------------------------------------------------------------
-        List<String> matchedReferenceHeaderFiles;
-        List<String> matchedReferenceLibraryFiles;
-        List<String> matchedNewHeaderFiles;
-        List<String> matchedNewLibraryFiles;
+        String headerFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_HEADER_FILES);
+        String libraryFiles = runnerParameters.get(AbiCheckerConstants.ARTIFACT_LIBRARY_FILES);
 
-        try {
-            matchedReferenceHeaderFiles = matchFiles(referenceExtractedArtifactFolder, headerFiles);
-            matchedReferenceLibraryFiles = matchFiles(referenceExtractedArtifactFolder, libraryFiles);
-            matchedNewHeaderFiles = matchFiles(newExtractedArtifactFolder.getAbsolutePath(), headerFiles);
-            matchedNewLibraryFiles = matchFiles(newExtractedArtifactFolder.getAbsolutePath(), libraryFiles);
-            if (matchedNewArtifacts.size() == 0) {
-                throw new RunBuildException("No files matched the pattern");
-            }
-        } catch (IOException e) {
-            throw new RunBuildException("I/O error while collecting files", e);
-        }
+        List<String> matchedReferenceHeaderFiles = findFiles(referenceArtifactsDirectory, headerFiles);
+        List<String> matchedReferenceLibraryFiles = findFiles(referenceArtifactsDirectory, libraryFiles);
+        List<String> matchedNewHeaderFiles = findFiles(newArtifactsDirectory, headerFiles);
+        List<String> matchedNewLibraryFiles = findFiles(newArtifactsDirectory, libraryFiles);
 
-        //--------------------------------------------------------------------------------------------------------------
         // Write the XML files
-        //--------------------------------------------------------------------------------------------------------------
-        String referenceXmlDescriptor = "" +
-                "<version>" + runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE_NAME)
-                + " " + referenceTag + "</version>" +
-                "<headers>" + StringUtil.join(matchedReferenceHeaderFiles, "\n") + "</headers>" +
-                "<libs>" + StringUtil.join(matchedReferenceLibraryFiles, "\n") + "</libs>" +
-                "<gcc_options>" + gccOptions + "</gcc_options>";
-        String newXmlDescriptor = "" +
-                "<version>" + getRunnerContext().getBuild().getBuildTypeName() + " build #"
-                + getRunnerContext().getBuild().getBuildNumber() + "</version>" +
-                "<headers>" + StringUtil.join(matchedNewHeaderFiles, "\n") + "</headers>" +
-                "<libs>" + StringUtil.join(matchedNewLibraryFiles, "\n") + "</libs>" +
-                "<gcc_options>" + gccOptions + "</gcc_options>";
+        String referenceXmlFileName = getBuildTempDirectory() + File.separator + referenceTag + ".xml";
+        File referenceXmlFile = writeXmlDescriptor(referenceXmlFileName,
+                runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE_NAME) + " " + referenceTag,
+                matchedReferenceHeaderFiles,
+                matchedReferenceLibraryFiles,
+                gccOptions);
 
-        String referenceXmlFile = getBuildTempDirectory() + File.separator + referenceTag + ".xml";
-        String newXmlFile = getBuildTempDirectory() + File.separator +
-                getRunnerContext().getBuild().getBuildNumber() + ".xml";
-        try {
-            IOUtils.writeFile(referenceXmlFile, referenceXmlDescriptor);
-            IOUtils.writeFile(newXmlFile, newXmlDescriptor);
-        } catch (IOException e) {
-            throw new RunBuildException("Error writing XML descriptors", e);
-        }
+        String newXmlFileName = getBuildTempDirectory() + File.separator
+                + getRunnerContext().getBuild().getBuildNumber() + ".xml";
+        File newXmlFile = writeXmlDescriptor(newXmlFileName,
+                getRunnerContext().getBuild().getBuildTypeName() + " build #"
+                        + getRunnerContext().getBuild().getBuildNumber(),
+                matchedNewHeaderFiles,
+                matchedNewLibraryFiles,
+                gccOptions);
 
-        //--------------------------------------------------------------------------------------------------------------
-        // Add the arguments
-        //--------------------------------------------------------------------------------------------------------------
+        // Build the arguments
         List<String> libNames = new ArrayList<String>();
         for (String libName : matchedReferenceLibraryFiles) {
             libNames.add(new File(libName).getName());
         }
 
-        arguments.add("-show-retval");
+        final AbiCheckerCommandLineBuilder commandLineBuilder = new AbiCheckerCommandLineBuilder(
+                runnerParameters, libNames, referenceXmlFile, newXmlFile, getBuild().getArtifactsPaths());
 
-        arguments.add("-lib");
-        arguments.add(StringUtil.join(libNames, ", "));
+        // Run the command
+        return new ProgramCommandLine() {
+            @NotNull
+            @Override
+            public String getExecutablePath() throws RunBuildException {
+                return commandLineBuilder.getExecutablePath();
+            }
 
-        arguments.add("-component");
-        arguments.add(matchedReferenceLibraryFiles.size() > 1 ? "libraries" : "library");
+            @NotNull
+            @Override
+            public String getWorkingDirectory() throws RunBuildException {
+                return getCheckoutDirectory().getPath();
+            }
 
-        arguments.add("-old");
-        arguments.add(referenceXmlFile);
+            @NotNull
+            @Override
+            public List<String> getArguments() throws RunBuildException {
+                return commandLineBuilder.getArguments();
+            }
 
-        arguments.add("-new");
-        arguments.add(newXmlFile);
-
-        arguments.add("-report-path");
-        arguments.add(getBuild().getArtifactsPaths() + AbiCheckerConstants.REPORT_FILE);
-
-        //--------------------------------------------------------------------------------------------------------------
-        // Run the comparison
-        //--------------------------------------------------------------------------------------------------------------
-        final SimpleProgramCommandLine commandLine = new SimpleProgramCommandLine(
-                environment,
-                getWorkingDirectory().getAbsolutePath(),
-                runnerParameters.get(AbiCheckerConstants.EXECUTABLE_PATH),
-                arguments);
-        return commandLine;
+            @NotNull
+            @Override
+            public Map<String, String> getEnvironment() throws RunBuildException {
+                return getBuildParameters().getEnvironmentVariables();
+            }
+        };
     }
 
     /**
@@ -274,6 +303,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
      *
      * @param filePath
      * @param fileString
+     *
      * @return
      * @throws IOException
      */
@@ -298,5 +328,34 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         }
 
         return result;
+    }
+
+    /**
+     * @param string
+     *
+     * @return
+     */
+    private String[] splitFileWildcards(final String string) {
+        if (string != null) {
+            final String filesStringWithSpaces = string.replace('\n', ' ').replace('\r', ' ').replace('\\', '/');
+            final List<String> split = StringUtil.splitCommandArgumentsAndUnquote(filesStringWithSpaces);
+            return split.toArray(new String[split.size()]);
+        }
+
+        return new String[0];
+    }
+
+    /**
+     * @param referenceArtifactsDirectory
+     */
+    public void setReferenceArtifactsDirectory(String referenceArtifactsDirectory) {
+        this.referenceArtifactsDirectory = referenceArtifactsDirectory;
+    }
+
+    /**
+     * @param newArtifactsDirectory
+     */
+    public void setNewArtifactsDirectory(String newArtifactsDirectory) {
+        this.newArtifactsDirectory = newArtifactsDirectory;
     }
 }

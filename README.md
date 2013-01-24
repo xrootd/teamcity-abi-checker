@@ -10,4 +10,9 @@ Usage
 * Copy `dist/abi-checker.zip` to `<teamcity user home directory>/.BuildAgent/plugins`
 * Restart TeamCity server (`<teamcity installation directory>/bin/runAll.sh [start|stop]`)
 
+Compatibility
+-------------
+
+Compatible with TeamCity 7.x. Not tested on earlier versions.
+
 *Note:* Guest user login must be enabled in your TeamCity configuration for this plugin to work.

@@ -63,18 +63,18 @@ public class AbiCheckerPropertiesProcessor implements PropertiesProcessor {
             }
         }
 
-        if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.ARTIFACT_FILES))) {
-            result.add(new InvalidProperty(AbiCheckerConstants.ARTIFACT_FILES,
+        if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.ARTIFACT_FILE_PATTERN))) {
+            result.add(new InvalidProperty(AbiCheckerConstants.ARTIFACT_FILE_PATTERN,
                     "At least one artifact must be specified"));
         }
 
-        if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.ARTIFACT_HEADER_FILES))) {
-            result.add(new InvalidProperty(AbiCheckerConstants.ARTIFACT_HEADER_FILES,
+        if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.HEADER_FILE_PATTERN))) {
+            result.add(new InvalidProperty(AbiCheckerConstants.HEADER_FILE_PATTERN,
                     "Path to at least one header inside artifact must be specified"));
         }
 
-        if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.ARTIFACT_LIBRARY_FILES))) {
-            result.add(new InvalidProperty(AbiCheckerConstants.ARTIFACT_LIBRARY_FILES,
+        if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.LIBRARY_FILE_PATTERN))) {
+            result.add(new InvalidProperty(AbiCheckerConstants.LIBRARY_FILE_PATTERN,
                     "Path to at least one library inside artifact must be specified"));
         }
 

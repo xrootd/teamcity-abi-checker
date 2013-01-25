@@ -42,11 +42,11 @@ public interface AbiCheckerConstants {
     String ARTIFACT_TYPE_ARCHIVE = "Archive";
     String ARTIFACT_TYPE_FOLDER = "Folder";
 
-    String ARTIFACT_FILES = "artifact-files";
+    String ARTIFACT_FILE_PATTERN = "artifact-files";
 
     String EXECUTABLE_PATH = "executable-path";
-    String ARTIFACT_HEADER_FILES = "artifact-header-files";
-    String ARTIFACT_LIBRARY_FILES = "artifact-library-files";
+    String HEADER_FILE_PATTERN = "artifact-header-files";
+    String LIBRARY_FILE_PATTERN = "artifact-library-files";
     String GCC_OPTIONS = "gcc-options";
 
     String TAB_ID = "abiCheckerReport";

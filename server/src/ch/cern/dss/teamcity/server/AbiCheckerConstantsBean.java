@@ -79,7 +79,7 @@ public class AbiCheckerConstantsBean {
 
     @NotNull
     public String getArtifactFilesKey() {
-        return AbiCheckerConstants.ARTIFACT_FILES;
+        return AbiCheckerConstants.ARTIFACT_FILE_PATTERN;
     }
 
     @NotNull
@@ -89,12 +89,12 @@ public class AbiCheckerConstantsBean {
 
     @NotNull
     public String getArtifactHeaderFilesKey() {
-        return AbiCheckerConstants.ARTIFACT_HEADER_FILES;
+        return AbiCheckerConstants.HEADER_FILE_PATTERN;
     }
 
     @NotNull
     public String getArtifactLibraryFilesKey() {
-        return AbiCheckerConstants.ARTIFACT_LIBRARY_FILES;
+        return AbiCheckerConstants.LIBRARY_FILE_PATTERN;
     }
 
     @NotNull

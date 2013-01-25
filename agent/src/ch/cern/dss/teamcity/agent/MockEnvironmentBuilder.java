@@ -35,6 +35,7 @@ public class MockEnvironmentBuilder {
 
     private SimpleLogger logger;
     private File metaDirectory;
+    private List<String> chroots;
 
     /**
      * @param metaDirectory
@@ -59,7 +60,7 @@ public class MockEnvironmentBuilder {
         }
 
         // Parse and verify the chroots
-        List<String> chroots = parseChroots(metaFile);
+        setChroots(parseChroots(metaFile));
         for (String chroot : chroots) {
             logger.message("chroot: " + chroot);
             if (!new File(AbiCheckerConstants.MOCK_CONFIG_DIRECTORY, chroot + ".cfg").exists()) {
@@ -144,5 +145,19 @@ public class MockEnvironmentBuilder {
             }
         }
         return groupFound;
+    }
+
+    /**
+     * @return
+     */
+    public List<String> getChroots() {
+        return chroots;
+    }
+
+    /**
+     * @param chroots
+     */
+    public void setChroots(List<String> chroots) {
+        this.chroots = chroots;
     }
 }

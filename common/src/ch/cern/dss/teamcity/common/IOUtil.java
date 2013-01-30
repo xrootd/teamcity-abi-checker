@@ -16,9 +16,7 @@
  * along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ch.cern.dss.teamcity.agent.util;
-
-import jetbrains.buildServer.log.Loggers;
+package ch.cern.dss.teamcity.common;
 
 import java.io.*;
 import java.net.URL;
@@ -29,7 +27,7 @@ import java.nio.charset.Charset;
 /**
  *
  */
-public class IOUtils {
+public class IOUtil {
 
     /**
      * @param command array of commands, needed for pipes to work
@@ -54,9 +52,7 @@ public class IOUtils {
         }
 
         try {
-            if (process.waitFor() != 0) {
-                Loggers.AGENT.error("Exit value: " + process.exitValue());
-            }
+            process.waitFor();
         } finally {
             reader.close();
         }

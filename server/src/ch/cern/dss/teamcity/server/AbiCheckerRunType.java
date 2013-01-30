@@ -36,7 +36,6 @@ import java.util.Map;
 public class AbiCheckerRunType extends RunType {
 
     private PluginDescriptor pluginDescriptor;
-    private ProjectManager projectManager;
 
     /**
      * Constructor. Uses spring autowiring feature to request objects from some spring bean in the TeamCity API and
@@ -44,13 +43,10 @@ public class AbiCheckerRunType extends RunType {
      *
      * @param runTypeRegistry  used to register this run type in the registry.
      * @param pluginDescriptor used to get the plugin resources path, i.e. path to JSP pages.
-     * @param projectManager   used to find the reference build type.
      */
     public AbiCheckerRunType(@NotNull final RunTypeRegistry runTypeRegistry,
-                             @NotNull final PluginDescriptor pluginDescriptor,
-                             @NotNull final ProjectManager projectManager) {
+                             @NotNull final PluginDescriptor pluginDescriptor) {
         this.pluginDescriptor = pluginDescriptor;
-        this.projectManager = projectManager;
         runTypeRegistry.registerRunType(this);
     }
 

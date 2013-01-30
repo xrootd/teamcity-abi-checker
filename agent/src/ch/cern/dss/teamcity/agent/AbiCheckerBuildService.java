@@ -19,7 +19,7 @@
 package ch.cern.dss.teamcity.agent;
 
 import ch.cern.dss.teamcity.agent.util.ArchiveExtractor;
-import ch.cern.dss.teamcity.agent.util.IOUtils;
+import ch.cern.dss.teamcity.common.IOUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import com.intellij.openapi.util.SystemInfo;
@@ -28,7 +28,6 @@ import jetbrains.buildServer.agent.runner.BuildServiceAdapter;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.AntPatternFileFinder;
 import jetbrains.buildServer.util.StringUtil;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.InputSource;
 
@@ -138,9 +137,9 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         // Build the arguments, depending on the mode
         ProgramCommandLine commandLine;
         if (context.getBuildMode().equals(AbiCheckerConstants.BUILD_MODE_NORMAL)) {
-            commandLine = new AbiCheckerCommandLine(context, logger);
+            commandLine = new NormalModeCommandLine(context, logger);
         } else if (context.getBuildMode().equals(AbiCheckerConstants.BUILD_MODE_MOCK)) {
-            commandLine = new MockCommandLine(context, logger);
+            commandLine = new MockModeCommandLine(context, logger);
         } else {
             throw new RunBuildException("Unknown build mode");
         }
@@ -178,7 +177,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         String referenceArtifactZipFile = getBuildTempDirectory().getAbsolutePath() + "/artifacts-" + tag + ".zip";
 
         try {
-            IOUtils.saveUrl(referenceArtifactZipFile, referenceArtifactDownloadUrl);
+            IOUtil.saveUrl(referenceArtifactZipFile, referenceArtifactDownloadUrl);
         } catch (IOException e) {
             throw new RunBuildException("Error downloading artifacts", e);
         }
@@ -242,7 +241,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
 
         File xmlFile;
         try {
-            xmlFile = IOUtils.writeFile(filename, descriptor);
+            xmlFile = IOUtil.writeFile(filename, descriptor);
         } catch (IOException e) {
             throw new RunBuildException("Error writing XML descriptor", e);
         }

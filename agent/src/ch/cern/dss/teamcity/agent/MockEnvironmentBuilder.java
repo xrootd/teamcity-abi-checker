@@ -18,9 +18,9 @@
 
 package ch.cern.dss.teamcity.agent;
 
-import ch.cern.dss.teamcity.agent.util.IOUtils;
+import ch.cern.dss.teamcity.common.IOUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
-import ch.cern.dss.teamcity.agent.util.SystemCommandResult;
+import ch.cern.dss.teamcity.common.SystemCommandResult;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import com.intellij.openapi.util.text.StringUtil;
 import com.sun.security.auth.UnixNumericGroupPrincipal;
@@ -88,7 +88,7 @@ public class MockEnvironmentBuilder {
         SystemCommandResult result;
 
         try {
-            result = IOUtils.runSystemCommand(command);
+            result = IOUtil.runSystemCommand(command);
         } catch (Exception e) {
             throw new RunBuildException("Unable to initialize mock environment: " + e.getMessage());
         }
@@ -104,10 +104,10 @@ public class MockEnvironmentBuilder {
      * @return
      * @throws IOException
      */
-    private List<String> parseChroots(File metaFile) throws RunBuildException {
+    private static List<String> parseChroots(File metaFile) throws RunBuildException {
         String metaFileContents;
         try {
-            metaFileContents = IOUtils.readFile(metaFile.getAbsolutePath());
+            metaFileContents = IOUtil.readFile(metaFile.getAbsolutePath());
         } catch (IOException e) {
             throw new RunBuildException("Unable to parse chroot metadata", e);
         }

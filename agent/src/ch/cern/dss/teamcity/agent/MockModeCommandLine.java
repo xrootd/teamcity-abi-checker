@@ -18,7 +18,7 @@
 
 package ch.cern.dss.teamcity.agent;
 
-import ch.cern.dss.teamcity.agent.util.IOUtils;
+import ch.cern.dss.teamcity.common.IOUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.RunBuildException;
@@ -33,13 +33,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-public class MockCommandLine implements ProgramCommandLine {
+/**
+ *
+ */
+public class MockModeCommandLine implements ProgramCommandLine {
 
     private final SimpleLogger logger;
     private final AbiCheckerContext context;
     private final MockEnvironmentBuilder mockEnvironmentBuilder;
 
-    public MockCommandLine(AbiCheckerContext context, SimpleLogger logger) throws RunBuildException {
+    /**
+     *
+     * @param context
+     * @param logger
+     * @throws RunBuildException
+     */
+    public MockModeCommandLine(AbiCheckerContext context, SimpleLogger logger) throws RunBuildException {
         this.context = context;
         this.logger = logger;
 
@@ -55,18 +64,33 @@ public class MockCommandLine implements ProgramCommandLine {
         mockEnvironmentBuilder.setup();
     }
 
+    /**
+     *
+     * @return
+     * @throws RunBuildException
+     */
     @NotNull
     @Override
     public String getExecutablePath() throws RunBuildException {
         return "/bin/bash";
     }
 
+    /**
+     *
+     * @return
+     * @throws RunBuildException
+     */
     @NotNull
     @Override
     public String getWorkingDirectory() throws RunBuildException {
         return context.getWorkingDirectory().getAbsolutePath();
     }
 
+    /**
+     *
+     * @return
+     * @throws RunBuildException
+     */
     @NotNull
     @Override
     public List<String> getArguments() throws RunBuildException {
@@ -86,7 +110,7 @@ public class MockCommandLine implements ProgramCommandLine {
             String mockConfig;
 
             try {
-                mockConfig = IOUtils.readFile(
+                mockConfig = IOUtil.readFile(
                         new File(AbiCheckerConstants.MOCK_CONFIG_DIRECTORY, chroot + ".cfg").getAbsolutePath());
             } catch (IOException e) {
                 throw new RunBuildException("Error reading mock config: " + chroot, e);
@@ -99,7 +123,7 @@ public class MockCommandLine implements ProgramCommandLine {
                     + context.getBuildTempDirectory() + "', '" + context.getBuildTempDirectory() + "' ))\n";
 
             try {
-                IOUtils.writeFile(new File(context.getWorkingDirectory().getAbsolutePath(), chroot + ".cfg")
+                IOUtil.writeFile(new File(context.getWorkingDirectory().getAbsolutePath(), chroot + ".cfg")
                         .getAbsolutePath(), mockConfig);
             } catch (IOException e) {
                 throw new RunBuildException("Error writing mock config: " + chroot, e);
@@ -131,7 +155,7 @@ public class MockCommandLine implements ProgramCommandLine {
 
         File mockScriptFile = new File(context.getWorkingDirectory(), "mock-install.sh");
         try {
-            IOUtils.writeFile(mockScriptFile.getAbsolutePath(), command.toString());
+            IOUtil.writeFile(mockScriptFile.getAbsolutePath(), command.toString());
         } catch (IOException e) {
             throw new RunBuildException("Error writing mock script", e);
         }
@@ -141,6 +165,11 @@ public class MockCommandLine implements ProgramCommandLine {
         return arguments;
     }
 
+    /**
+     *
+     * @return
+     * @throws RunBuildException
+     */
     @NotNull
     @Override
     public Map<String, String> getEnvironment() throws RunBuildException {

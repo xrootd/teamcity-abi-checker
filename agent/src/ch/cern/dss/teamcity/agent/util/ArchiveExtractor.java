@@ -18,6 +18,8 @@
 
 package ch.cern.dss.teamcity.agent.util;
 
+import ch.cern.dss.teamcity.common.IOUtil;
+import ch.cern.dss.teamcity.common.SystemCommandResult;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.log.Loggers;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -112,7 +114,7 @@ public class ArchiveExtractor {
                 "/bin/sh",
                 "-c",
                 "/usr/bin/rpm2cpio " + archivePath + " > " + cpioPath};
-        SystemCommandResult result = ch.cern.dss.teamcity.agent.util.IOUtils.runSystemCommand(rpm2cpioCommand);
+        SystemCommandResult result = IOUtil.runSystemCommand(rpm2cpioCommand);
         Loggers.AGENT.debug("rpm2cpio returned with code " + result.getReturnCode());
         return cpioPath;
     }
@@ -136,10 +138,10 @@ public class ArchiveExtractor {
 
         command = command.replace("%cpio_file%", archivePath);
         command = command.replace("%working_directory%", outputFolder);
-        IOUtils.writeFile("extract-cpio.sh", command);
+        IOUtil.writeFile("extract-cpio.sh", command);
         new File("extract-cpio.sh").setExecutable(true);
 
-        SystemCommandResult result = IOUtils.runSystemCommand(new String[]{"./extract-cpio.sh", command});
+        SystemCommandResult result = IOUtil.runSystemCommand(new String[]{"./extract-cpio.sh", command});
         if (result.getReturnCode() != 0) {
             throw new RunBuildException("Failed to extract cpio: " + result.getOutput());
         }
@@ -154,7 +156,7 @@ public class ArchiveExtractor {
     public void extractTar(String archivePath, String outputFolder)
             throws IOException, InterruptedException, RunBuildException {
         String[] command = {"tar", "-xf", archivePath, "-C", outputFolder};
-        SystemCommandResult result = IOUtils.runSystemCommand(command);
+        SystemCommandResult result = IOUtil.runSystemCommand(command);
         if (result.getReturnCode() != 0) {
             throw new RunBuildException("Failed to extract tar: " + result.getOutput());
         }
@@ -169,7 +171,7 @@ public class ArchiveExtractor {
     public void extractZip(String archivePath, String outputFolder)
             throws IOException, InterruptedException, RunBuildException {
         String[] command = {"unzip", archivePath, "-d", outputFolder};
-        SystemCommandResult result = IOUtils.runSystemCommand(command);
+        SystemCommandResult result = IOUtil.runSystemCommand(command);
         if (result.getReturnCode() != 0) {
             throw new RunBuildException("Failed to extract zip: " + result.getOutput());
         }

@@ -16,7 +16,7 @@
  * along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ch.cern.dss.teamcity.agent.util;
+package ch.cern.dss.teamcity.common;
 
 public class SystemCommandResult {
 

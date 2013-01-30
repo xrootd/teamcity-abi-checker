@@ -33,7 +33,7 @@ import java.util.Vector;
 /**
  *
  */
-public class AbiCheckerCommandLine implements ProgramCommandLine {
+public class NormalModeCommandLine implements ProgramCommandLine {
 
     private final SimpleLogger logger;
     private final AbiCheckerContext context;
@@ -42,7 +42,7 @@ public class AbiCheckerCommandLine implements ProgramCommandLine {
      * @param context
      * @param logger
      */
-    public AbiCheckerCommandLine(AbiCheckerContext context, SimpleLogger logger) {
+    public NormalModeCommandLine(AbiCheckerContext context, SimpleLogger logger) {
         this.context = context;
         this.logger = logger;
     }

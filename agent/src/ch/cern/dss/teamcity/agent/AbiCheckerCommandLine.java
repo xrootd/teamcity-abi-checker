@@ -19,7 +19,6 @@
 package ch.cern.dss.teamcity.agent;
 
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
-import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.StringUtil;
@@ -57,15 +56,12 @@ public class AbiCheckerCommandLine implements ProgramCommandLine {
         List<String> arguments = new Vector<String>();
         arguments.add("-show-retval");
 
-        List<String> libNames = new ArrayList<String>();
-        for (String libName : context.getMatchedReferenceLibraryFiles()) {
-            libNames.add(new File(libName).getName());
-        }
+
         arguments.add("-lib");
-        arguments.add(StringUtil.join(libNames, ", "));
+        arguments.add(StringUtil.join(context.getLibNames(), ", "));
 
         arguments.add("-component");
-        arguments.add(libNames.size() > 1 ? "libraries" : "library");
+        arguments.add(context.getLibNames().size() > 1 ? "libraries" : "library");
 
         arguments.add("-old");
         arguments.add(context.getReferenceXmlFilename());

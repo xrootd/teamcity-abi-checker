@@ -21,10 +21,10 @@ package ch.cern.dss.teamcity.agent;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.agent.BuildParametersMap;
 import jetbrains.buildServer.agent.BuildRunnerContext;
+import jetbrains.buildServer.util.StringUtil;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AbiCheckerContext {
 
@@ -71,6 +71,10 @@ public class AbiCheckerContext {
 
     public String getNewArtifactsDirectory() {
         return runnerContext.getBuild().getArtifactsPaths();
+    }
+
+    public String getBuildTempDirectory() {
+        return buildTempDirectory.getAbsolutePath();
     }
 
     public File getWorkingDirectory() {
@@ -152,5 +156,13 @@ public class AbiCheckerContext {
 
     public String getCompatibilityReportFile() {
         return getNewArtifactsDirectory() + AbiCheckerConstants.REPORT_FILE;
+    }
+
+    public Set<String> getLibNames() {
+        Set<String> libNames = new HashSet<String>();
+        for (String libName : getMatchedReferenceLibraryFiles()) {
+            libNames.add(new File(libName).getName());
+        }
+        return libNames;
     }
 }

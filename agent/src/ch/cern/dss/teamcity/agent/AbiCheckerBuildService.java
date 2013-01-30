@@ -28,6 +28,7 @@ import jetbrains.buildServer.agent.runner.BuildServiceAdapter;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.AntPatternFileFinder;
 import jetbrains.buildServer.util.StringUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.InputSource;
 
@@ -87,7 +88,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
 
             logger.message("Extracting reference files");
             for (String artifact : matchedReferenceArtifacts) {
-                extractArtifacts(artifact, context.getReferenceArtifactsDirectory());
+                extractArtifacts(artifact, new File(artifact).getParent());
             }
         }
 
@@ -101,7 +102,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
 
             logger.message("Extracting new files");
             for (String artifact : matchedNewArtifacts) {
-                extractArtifacts(artifact, context.getWorkingDirectory() + File.separator + "extracted");
+                extractArtifacts(artifact, new File(artifact).getParent());
             }
         }
     }

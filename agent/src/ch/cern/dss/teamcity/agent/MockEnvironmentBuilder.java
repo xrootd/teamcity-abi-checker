@@ -62,7 +62,6 @@ public class MockEnvironmentBuilder {
         // Parse and verify the chroots
         setChroots(parseChroots(metaFile));
         for (String chroot : chroots) {
-            logger.message("chroot: " + chroot);
             if (!new File(AbiCheckerConstants.MOCK_CONFIG_DIRECTORY, chroot + ".cfg").exists()) {
                 throw new RunBuildException("Unknown chroot environment: " + chroot);
             }

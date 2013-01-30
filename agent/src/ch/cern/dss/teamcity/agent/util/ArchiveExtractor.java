@@ -18,6 +18,7 @@
 
 package ch.cern.dss.teamcity.agent.util;
 
+import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.log.Loggers;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -50,7 +51,7 @@ public class ArchiveExtractor {
      * @throws InterruptedException
      */
     public void extract(String archivePath, String outputFolder)
-            throws CompressorException, ArchiveException, IOException, InterruptedException {
+            throws CompressorException, ArchiveException, IOException, InterruptedException, RunBuildException {
         logger.message("Extracting archive: " + archivePath);
 
         if (!new File(archivePath).exists()) {
@@ -126,7 +127,8 @@ public class ArchiveExtractor {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void extractCpio(String archivePath, String outputFolder) throws IOException, InterruptedException {
+    public void extractCpio(String archivePath, String outputFolder)
+            throws IOException, InterruptedException, RunBuildException {
 
         String command = "#!/bin/sh\n" +
                 "cd %working_directory%\n" +
@@ -134,26 +136,13 @@ public class ArchiveExtractor {
 
         command = command.replace("%cpio_file%", archivePath);
         command = command.replace("%working_directory%", outputFolder);
-        System.out.println(command);
         IOUtils.writeFile("extract-cpio.sh", command);
         new File("extract-cpio.sh").setExecutable(true);
 
-        ProcessBuilder builder = new ProcessBuilder("./extract-cpio.sh");
-        builder.redirectErrorStream(true);
-        Process process = builder.start();
-
-        BufferedReader reader = new BufferedReader(
-                new InputStreamReader(process.getInputStream()));
-
-        String line;
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
+        SystemCommandResult result = IOUtils.runSystemCommand(new String[]{"./extract-cpio.sh", command});
+        if (result.getReturnCode() != 0) {
+            throw new RunBuildException("Failed to extract cpio: " + result.getOutput());
         }
-
-        System.out.println("Exit value: " + process.waitFor());
-        process.getInputStream().close();
-        process.getOutputStream().close();
-        process.getErrorStream().close();
     }
 
     /**
@@ -162,9 +151,13 @@ public class ArchiveExtractor {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void extractTar(String archivePath, String outputFolder) throws IOException, InterruptedException {
+    public void extractTar(String archivePath, String outputFolder)
+            throws IOException, InterruptedException, RunBuildException {
         String[] command = {"tar", "-xf", archivePath, "-C", outputFolder};
-        IOUtils.runSystemCommand(command);
+        SystemCommandResult result = IOUtils.runSystemCommand(command);
+        if (result.getReturnCode() != 0) {
+            throw new RunBuildException("Failed to extract tar: " + result.getOutput());
+        }
     }
 
     /**
@@ -173,9 +166,13 @@ public class ArchiveExtractor {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void extractZip(String archivePath, String outputFolder) throws IOException, InterruptedException {
+    public void extractZip(String archivePath, String outputFolder)
+            throws IOException, InterruptedException, RunBuildException {
         String[] command = {"unzip", archivePath, "-d", outputFolder};
-        IOUtils.runSystemCommand(command);
+        SystemCommandResult result = IOUtils.runSystemCommand(command);
+        if (result.getReturnCode() != 0) {
+            throw new RunBuildException("Failed to extract zip: " + result.getOutput());
+        }
     }
 
 }

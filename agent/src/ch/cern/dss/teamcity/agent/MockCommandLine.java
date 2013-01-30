@@ -24,6 +24,7 @@ import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.StringUtil;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -57,25 +58,75 @@ public class MockCommandLine implements ProgramCommandLine {
     @NotNull
     @Override
     public String getExecutablePath() throws RunBuildException {
-        return null;
+        return "/bin/bash";
     }
 
     @NotNull
     @Override
     public String getWorkingDirectory() throws RunBuildException {
-        return null;
+        return context.getWorkingDirectory().getAbsolutePath();
     }
 
     @NotNull
     @Override
     public List<String> getArguments() throws RunBuildException {
         List<String> arguments = new Vector<String>();
-
         StringBuilder command = new StringBuilder();
 
+        try {
+            FileUtils.copyFile(new File(AbiCheckerConstants.MOCK_CONFIG_DIRECTORY, "site-defaults.cfg"),
+                    new File(context.getWorkingDirectory().getAbsolutePath(), "site-defaults.cfg"));
+            FileUtils.copyFile(new File(AbiCheckerConstants.MOCK_CONFIG_DIRECTORY, "logging.ini"),
+                    new File(context.getWorkingDirectory().getAbsolutePath(), "logging.ini"));
+        } catch (IOException e) {
+            throw new RunBuildException("Error reading mock site-defaults.cfg", e);
+        }
+
         for (String chroot : mockEnvironmentBuilder.getChroots()) {
-            command.append(AbiCheckerConstants.MOCK_EXECUTABLE
-                    + " -r " + chroot + " --install abi-compliance-checker\n");
+            String mockConfig;
+
+            try {
+                mockConfig = IOUtils.readFile(
+                        new File(AbiCheckerConstants.MOCK_CONFIG_DIRECTORY, chroot + ".cfg").getAbsolutePath());
+            } catch (IOException e) {
+                throw new RunBuildException("Error reading mock config: " + chroot, e);
+            }
+
+            mockConfig += "\nconfig_opts['plugin_conf']['bind_mount_enable'] = True\n";
+            mockConfig += "config_opts['plugin_conf']['root_cache_opts']['age_check'] = False\n";
+            mockConfig += "config_opts['plugin_conf']['bind_mount_opts']['create_dirs'] = True\n";
+            mockConfig += "config_opts['plugin_conf']['bind_mount_opts']['dirs'].append(('"
+                    + context.getBuildTempDirectory() + "', '" + context.getBuildTempDirectory() + "' ))\n";
+
+            try {
+                IOUtils.writeFile(new File(context.getWorkingDirectory().getAbsolutePath(), chroot + ".cfg")
+                        .getAbsolutePath(), mockConfig);
+            } catch (IOException e) {
+                throw new RunBuildException("Error writing mock config: " + chroot, e);
+            }
+
+            command.append(AbiCheckerConstants.MOCK_EXECUTABLE)
+                    .append(" --configdir=").append(context.getWorkingDirectory().getAbsolutePath())
+                    .append(" -r ").append(chroot)
+                    .append(" --install abi-compliance-checker ctags\n");
+
+            command.append(AbiCheckerConstants.MOCK_EXECUTABLE)
+                    .append(" --configdir=").append(context.getWorkingDirectory().getAbsolutePath())
+                    .append(" -r ").append(chroot)
+                    .append(" --chroot '")
+                    .append(context.getAbiCheckerExecutablePath())
+                    .append(" -show-retval")
+                    .append(" -lib ").append(StringUtil.join(context.getLibNames(), ", "))
+                    .append(" -component ").append(context.getLibNames().size() > 1 ? "libraries" : "library")
+                    .append(" -old ").append(context.getReferenceXmlFilename())
+                    .append(" -new ").append(context.getNewXmlFilename())
+                    .append(" -report-path ").append(context.getNewArtifactsDirectory())
+                    .append("/").append(chroot).append(AbiCheckerConstants.REPORT_DIRECTORY)
+                    .append(AbiCheckerConstants.REPORT_FILE)
+                    .append(" -log-path ").append(context.getNewArtifactsDirectory())
+                    .append("/").append(chroot).append(AbiCheckerConstants.REPORT_DIRECTORY)
+                    .append("log.txt")
+                    .append(" -logging-mode w'\n");
         }
 
         File mockScriptFile = new File(context.getWorkingDirectory(), "mock-install.sh");
@@ -93,6 +144,6 @@ public class MockCommandLine implements ProgramCommandLine {
     @NotNull
     @Override
     public Map<String, String> getEnvironment() throws RunBuildException {
-        return null;
+        return context.getEnvironment();
     }
 }

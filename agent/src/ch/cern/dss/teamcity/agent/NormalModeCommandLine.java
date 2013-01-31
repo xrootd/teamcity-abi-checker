@@ -19,6 +19,7 @@
 package ch.cern.dss.teamcity.agent;
 
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
+import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.StringUtil;
@@ -56,7 +57,6 @@ public class NormalModeCommandLine implements ProgramCommandLine {
         List<String> arguments = new Vector<String>();
         arguments.add("-show-retval");
 
-
         arguments.add("-lib");
         arguments.add(StringUtil.join(context.getLibNames(), ", "));
 
@@ -69,9 +69,19 @@ public class NormalModeCommandLine implements ProgramCommandLine {
         arguments.add("-new");
         arguments.add(context.getNewXmlFilename());
 
-        arguments.add("-report-path");
-        arguments.add(context.getCompatibilityReportFile());
+        arguments.add("-binary");
+        arguments.add("-bin-report-path");
+        arguments.add(context.getNewArtifactsDirectory()
+                + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.ABI_REPORT);
 
+        arguments.add("-source");
+        arguments.add("-src-report-path");
+        arguments.add(context.getNewArtifactsDirectory()
+                + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT);
+
+        arguments.add("-log-path");
+        arguments.add(context.getNewArtifactsDirectory()
+                + AbiCheckerConstants.REPORT_DIRECTORY + "log.txt");
         return arguments;
     }
 

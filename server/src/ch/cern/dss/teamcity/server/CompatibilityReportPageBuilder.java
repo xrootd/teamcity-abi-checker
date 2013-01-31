@@ -35,7 +35,7 @@ public class CompatibilityReportPageBuilder {
         reportPages = new AbstractMap.SimpleEntry<String, String>
                 (stripCss(reportPages.getKey()), stripCss(reportPages.getValue()));
         this.reportPages = new HashMap<String, Map.Entry<String, String>>();
-        this.reportPages.put("default", reportPages);
+        this.reportPages.put("", reportPages);
     }
 
     /**
@@ -65,6 +65,13 @@ public class CompatibilityReportPageBuilder {
         }
 
         pattern = Pattern.compile("<div style='height:999px;'></div>");
+        matcher = pattern.matcher(reportPage);
+        if (matcher.find()) {
+            reportPage = reportPage.replace(matcher.group(0), "");
+        }
+
+        // Deal with other annoying bits of the generated output
+        pattern = Pattern.compile("<h1>.+</h1>", Pattern.MULTILINE | Pattern.DOTALL);
         matcher = pattern.matcher(reportPage);
         if (matcher.find()) {
             reportPage = reportPage.replace(matcher.group(0), "");

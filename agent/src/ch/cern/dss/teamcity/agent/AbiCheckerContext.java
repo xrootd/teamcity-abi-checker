@@ -153,10 +153,6 @@ public class AbiCheckerContext {
         return matchedNewLibraryFiles;
     }
 
-    public String getCompatibilityReportFile() {
-        return getNewArtifactsDirectory() + AbiCheckerConstants.ABI_REPORT;
-    }
-
     public Set<String> getLibNames() {
         Set<String> libNames = new HashSet<String>();
         for (String libName : getMatchedReferenceLibraryFiles()) {

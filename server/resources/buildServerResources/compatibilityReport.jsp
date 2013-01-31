@@ -100,8 +100,9 @@ hr {
 
 span.section {
     font-weight: bold;
+    font-family: 'Menlo', 'Bitstream Vera Sans Mono', 'Courier New', 'Courier', monospace;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 15px;
     color: #003E69;
     white-space: nowrap;
     margin-left: 5px;
@@ -159,6 +160,7 @@ div.h_list {
 span.ns {
     color: #408080;
     font-size: 15px;
+    font-family: 'Menlo', 'Bitstream Vera Sans Mono', 'Courier New', 'Courier', monospace;
 }
 
 div.lib_list {
@@ -188,6 +190,7 @@ span.iname_a {
     color: #333333;
     font-weight: bold;
     font-size: 15px;
+    font-family: 'Menlo', 'Bitstream Vera Sans Mono', 'Courier New', 'Courier', monospace;
 }
 
 span.sym_p {

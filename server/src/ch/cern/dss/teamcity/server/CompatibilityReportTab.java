@@ -85,7 +85,6 @@ public class CompatibilityReportTab extends ViewLogTab {
      * @throws IOException
      */
     private Map<String, Map.Entry<String, String>> getReportPages(SBuild build) throws IOException {
-        BuildArtifacts buildArtifacts = build.getArtifacts(BuildArtifactsViewMode.VIEW_DEFAULT);
         SBuildRunnerDescriptor descriptor = build.getBuildType().findBuildRunnerByType(AbiCheckerConstants.TYPE);
         Map<String, String> runnerParameters = descriptor.getParameters();
 
@@ -93,12 +92,14 @@ public class CompatibilityReportTab extends ViewLogTab {
         Map<String, Map.Entry<String, String>> reportPages;
 
         if (runnerParameters.get(AbiCheckerConstants.BUILD_MODE).equals(AbiCheckerConstants.BUILD_MODE_NORMAL)) {
-            BuildArtifact abiReportPage = buildArtifacts.getArtifact(AbiCheckerConstants.ABI_REPORT);
-            BuildArtifact srcReportPage = buildArtifacts.getArtifact(AbiCheckerConstants.SRC_REPORT);
+            File abiReportPage = new File(build.getArtifactsDirectory(),
+                    AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.ABI_REPORT);
+            File srcReportPage = new File(build.getArtifactsDirectory(),
+                    AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT);
 
             builder = new CompatibilityReportPageBuilder(new AbstractMap.SimpleEntry<String, String>
-                    (IOUtils.toString(abiReportPage.getInputStream(), "UTF-8"),
-                            IOUtils.toString(srcReportPage.getInputStream(), "UTF-8")));
+                    (IOUtil.readFile(abiReportPage.getAbsolutePath()),
+                            IOUtil.readFile(srcReportPage.getAbsolutePath())));
             reportPages = builder.getReportPages();
 
         } else {
@@ -122,8 +123,11 @@ public class CompatibilityReportTab extends ViewLogTab {
         Map<String, String> runnerParameters = descriptor.getParameters();
 
         if (runnerParameters.get(AbiCheckerConstants.BUILD_MODE).equals(AbiCheckerConstants.BUILD_MODE_NORMAL)) {
-            return super.isAvailable(request, build) && ReportTabUtil.isAvailable(build,
-                    AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.ABI_REPORT);
+            return super.isAvailable(request, build)
+                    && ReportTabUtil.isAvailable(build,
+                    AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.ABI_REPORT)
+                    && ReportTabUtil.isAvailable(build,
+                    AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT);
         } else {
             try {
                 Map<String, Map.Entry<String, String>> mockReportPages = getMockReportPages(build);

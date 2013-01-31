@@ -48,7 +48,7 @@ public class AbiCheckerPropertiesProcessor implements PropertiesProcessor {
 
         if (PropertiesUtil.isEmptyOrNull(properties.get(AbiCheckerConstants.REFERENCE_TAG))) {
             result.add(new InvalidProperty(AbiCheckerConstants.REFERENCE_TAG,
-                    "Cannot reference a project with no tagged builds"));
+                    "Cannot reference a build type with no tagged builds"));
         }
 
         String executablePath = properties.get(AbiCheckerConstants.EXECUTABLE_PATH);

@@ -69,6 +69,10 @@
     TagHandler.requestTags();
 </c:set>
 
+<c:if test="${constants.buildModeMockKey == propertiesBean.properties[constants.buildModeKey]}">
+    <c:set var="hideArtifactTypeInput" value="style='display: none;'"/>
+</c:if>
+
 <layout:settingsGroup title="Reference Build Settings">
     <tr>
         <th><label for="${constants.referenceBuildTypeKey}">Reference build type: </label></th>
@@ -126,7 +130,7 @@
             compatibility check inside mock for all listed architectures.</span>
         </td>
     </tr>
-    <tr id="artifactTypeSection">
+    <tr id="artifactTypeSection" ${hideArtifactTypeInput}>
         <th><label>Artifact type:</label></th>
         <td>
             <props:radioButtonProperty name="${constants.artifactTypeKey}"

@@ -43,7 +43,8 @@ public interface AbiCheckerConstants {
     String TAB_ID = "abiCheckerReport";
     String TAB_TITLE = "ABI Compatibility Report";
     String REPORT_DIRECTORY = "/abi-checker-report/";
-    String REPORT_FILE = "compatibility-report.html";
+    String ABI_REPORT = "abi-compatibility-report.html";
+    String SRC_REPORT = "src-compatibility-report.html";
     String MOCK_EXECUTABLE = "/usr/bin/mock";
     String MOCK_CONFIG_DIRECTORY = "/etc/mock";
     String MOCK_CHROOT_DIRECTORY = "/var/lib/mock";

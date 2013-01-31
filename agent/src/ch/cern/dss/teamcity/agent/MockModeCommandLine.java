@@ -144,12 +144,16 @@ public class MockModeCommandLine implements ProgramCommandLine {
                     .append(" -component ").append(context.getLibNames().size() > 1 ? "libraries" : "library")
                     .append(" -old ").append(context.getReferenceXmlFilename())
                     .append(" -new ").append(context.getNewXmlFilename())
-                    .append(" -report-path ").append(context.getNewArtifactsDirectory())
+                    .append(" -binary -bin-report-path ").append(context.getNewArtifactsDirectory())
                     .append("/").append(chroot).append(AbiCheckerConstants.REPORT_DIRECTORY)
-                    .append(AbiCheckerConstants.REPORT_FILE)
+                    .append(AbiCheckerConstants.ABI_REPORT)
+                    .append(" -source -src-report-path ").append(context.getNewArtifactsDirectory())
+                    .append("/").append(chroot).append(AbiCheckerConstants.REPORT_DIRECTORY)
+                    .append(AbiCheckerConstants.SRC_REPORT)
                     .append(" -log-path ").append(context.getNewArtifactsDirectory())
                     .append("/").append(chroot).append(AbiCheckerConstants.REPORT_DIRECTORY)
                     .append("log.txt")
+                    .append(" -report-format html")
                     .append(" -logging-mode w'\n");
         }
 

@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class CompatibilityReportTab extends ViewLogTab {
                                   @NotNull SBuildServer server,
                                   @NotNull PluginDescriptor pluginDescriptor) {
         super(AbiCheckerConstants.TAB_TITLE, AbiCheckerConstants.TAB_ID, pagePlaces, server);
-        addJsFile(pluginDescriptor.getPluginResourcesPath("simpletabs-1.3.packed.js"));
+        addJsFile(pluginDescriptor.getPluginResourcesPath("jquery.easytabs.min.js"));
         setIncludeUrl(pluginDescriptor.getPluginResourcesPath() + "compatibilityReport.jsp");
     }
 
@@ -83,21 +84,25 @@ public class CompatibilityReportTab extends ViewLogTab {
      * @return
      * @throws IOException
      */
-    private Map<String, String> getReportPages(SBuild build) throws IOException {
+    private Map<String, Map.Entry<String, String>> getReportPages(SBuild build) throws IOException {
         BuildArtifacts buildArtifacts = build.getArtifacts(BuildArtifactsViewMode.VIEW_DEFAULT);
         SBuildRunnerDescriptor descriptor = build.getBuildType().findBuildRunnerByType(AbiCheckerConstants.TYPE);
         Map<String, String> runnerParameters = descriptor.getParameters();
 
         CompatibilityReportPageBuilder builder;
-        Map<String, String> reportPages;
+        Map<String, Map.Entry<String, String>> reportPages;
 
         if (runnerParameters.get(AbiCheckerConstants.BUILD_MODE).equals(AbiCheckerConstants.BUILD_MODE_NORMAL)) {
-            BuildArtifact reportPage = buildArtifacts.getArtifact(AbiCheckerConstants.REPORT_FILE);
-            builder = new CompatibilityReportPageBuilder(IOUtils.toString(reportPage.getInputStream(), "UTF-8"));
+            BuildArtifact abiReportPage = buildArtifacts.getArtifact(AbiCheckerConstants.ABI_REPORT);
+            BuildArtifact srcReportPage = buildArtifacts.getArtifact(AbiCheckerConstants.SRC_REPORT);
+
+            builder = new CompatibilityReportPageBuilder(new AbstractMap.SimpleEntry<String, String>
+                    (IOUtils.toString(abiReportPage.getInputStream(), "UTF-8"),
+                            IOUtils.toString(srcReportPage.getInputStream(), "UTF-8")));
             reportPages = builder.getReportPages();
 
         } else {
-            Map<String, String> mockReportPages = getMockReportPages(build);
+            Map<String, Map.Entry<String, String>> mockReportPages = getMockReportPages(build);
             builder = new CompatibilityReportPageBuilder(mockReportPages);
             reportPages = builder.getReportPages();
         }
@@ -118,16 +123,20 @@ public class CompatibilityReportTab extends ViewLogTab {
 
         if (runnerParameters.get(AbiCheckerConstants.BUILD_MODE).equals(AbiCheckerConstants.BUILD_MODE_NORMAL)) {
             return super.isAvailable(request, build) && ReportTabUtil.isAvailable(build,
-                    AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.REPORT_FILE);
-
+                    AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.ABI_REPORT);
         } else {
-
             try {
-                for (String chroot : getMockReportPages(build).keySet()) {
+                Map<String, Map.Entry<String, String>> mockReportPages = getMockReportPages(build);
+                if (mockReportPages == null || mockReportPages.isEmpty()) {
+                    return false;
+                }
+
+                for (String chroot : mockReportPages.keySet()) {
                     if (!ReportTabUtil.isAvailable(build,
-                            chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.REPORT_FILE)) {
-                        Loggers.SERVER.info("Page not available: " + chroot + AbiCheckerConstants.REPORT_DIRECTORY
-                                + AbiCheckerConstants.REPORT_FILE);
+                            chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.ABI_REPORT)
+                            ||
+                            !ReportTabUtil.isAvailable(build,
+                                    chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT)) {
                         return false;
                     }
                 }
@@ -136,20 +145,19 @@ public class CompatibilityReportTab extends ViewLogTab {
                 return false;
             }
         }
-
         // Nothing bad happened, we can show the page
         return true;
     }
 
     /**
-     *
      * @param build
+     *
      * @return
      * @throws IOException
      */
     @Nullable
-    private Map<String, String> getMockReportPages(SBuild build) throws IOException {
-        Map<String, String> reportPages = new HashMap<String, String>();
+    private Map<String, Map.Entry<String, String>> getMockReportPages(SBuild build) throws IOException {
+        Map<String, Map.Entry<String, String>> reportPages = new HashMap<String, Map.Entry<String, String>>();
 
         // Find the meta directory
         File mockMetaDirectory = new File(build.getArtifactsDirectory(), AbiCheckerConstants.MOCK_META_DIRECTORY);
@@ -171,10 +179,15 @@ public class CompatibilityReportTab extends ViewLogTab {
 
         // Check if we have a folder with the chroot name and the report file is inside
         for (String chroot : chroots) {
-            File reportPage = new File(build.getArtifactsDirectory(),
-                    chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.REPORT_FILE);
-            if (reportPage.exists()) {
-                reportPages.put(chroot, IOUtil.readFile(reportPage.getAbsolutePath()));
+            File abiReportPage = new File(build.getArtifactsDirectory(),
+                    chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.ABI_REPORT);
+            File srcReportPage = new File(build.getArtifactsDirectory(),
+                    chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT);
+            if (abiReportPage.exists() && srcReportPage.exists()) {
+                Map.Entry<String, String> pages = new AbstractMap.SimpleEntry<String, String>
+                        (IOUtil.readFile(abiReportPage.getAbsolutePath()),
+                                IOUtil.readFile(srcReportPage.getAbsolutePath()));
+                reportPages.put(chroot, pages);
             }
         }
 
@@ -198,7 +211,6 @@ public class CompatibilityReportTab extends ViewLogTab {
         if (!metaFileContents.startsWith("chroots=")) {
             return null;
         }
-
         return StringUtil.split(StringUtil.split(metaFileContents, "=").get(1), ",");
     }
 

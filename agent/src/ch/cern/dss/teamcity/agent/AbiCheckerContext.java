@@ -21,7 +21,6 @@ package ch.cern.dss.teamcity.agent;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.agent.BuildParametersMap;
 import jetbrains.buildServer.agent.BuildRunnerContext;
-import jetbrains.buildServer.util.StringUtil;
 
 import java.io.File;
 import java.util.*;
@@ -155,7 +154,7 @@ public class AbiCheckerContext {
     }
 
     public String getCompatibilityReportFile() {
-        return getNewArtifactsDirectory() + AbiCheckerConstants.REPORT_FILE;
+        return getNewArtifactsDirectory() + AbiCheckerConstants.ABI_REPORT;
     }
 
     public Set<String> getLibNames() {

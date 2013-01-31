@@ -18,30 +18,36 @@
 
 package ch.cern.dss.teamcity.server;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CompatibilityReportPageBuilder {
 
-    Map<String, String> reportPages;
+    Map<String, Map.Entry<String, String>> reportPages;
 
     /**
-     * @param reportPage
+     * @param reportPages
      */
-    public CompatibilityReportPageBuilder(String reportPage) {
-        reportPage = replaceCss(reportPage);
-        this.reportPages = new HashMap<String, String>();
-        this.reportPages.put("default", reportPage);
+    public CompatibilityReportPageBuilder(Map.Entry<String, String> reportPages) {
+        reportPages = new AbstractMap.SimpleEntry<String, String>
+                (stripCss(reportPages.getKey()), stripCss(reportPages.getValue()));
+        this.reportPages = new HashMap<String, Map.Entry<String, String>>();
+        this.reportPages.put("default", reportPages);
     }
 
     /**
      * @param reportPages
      */
-    public CompatibilityReportPageBuilder(Map<String, String> reportPages) {
-        Map<String, String> replacedPages = new HashMap<String, String>();
+    public CompatibilityReportPageBuilder(Map<String, Map.Entry<String, String>> reportPages) {
+        Map<String, Map.Entry<String, String>> replacedPages = new HashMap<String, Map.Entry<String, String>>();
 
         for (Map.Entry e : reportPages.entrySet()) {
-            replacedPages.put(e.getKey().toString(), replaceCss(e.getValue().toString()));
+            replacedPages.put(e.getKey().toString(), new AbstractMap.SimpleEntry<String, String>
+                    (stripCss(((Map.Entry) e.getValue()).getKey().toString()),
+                            stripCss(((Map.Entry) e.getValue()).getValue().toString())));
         }
         this.reportPages = replacedPages;
     }
@@ -51,14 +57,26 @@ public class CompatibilityReportPageBuilder {
      *
      * @return
      */
-    private String replaceCss(String reportPage) {
+    private String stripCss(String reportPage) {
+        Pattern pattern = Pattern.compile("<style type=\"text/css\">.+</style>", Pattern.MULTILINE | Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(reportPage);
+        if (matcher.find()) {
+            reportPage = reportPage.replace(matcher.group(0), "");
+        }
+
+        pattern = Pattern.compile("<div style='height:999px;'></div>");
+        matcher = pattern.matcher(reportPage);
+        if (matcher.find()) {
+            reportPage = reportPage.replace(matcher.group(0), "");
+        }
+
         return reportPage;
     }
 
     /**
      * @return
      */
-    public Map<String, String> getReportPages() {
+    public Map<String, Map.Entry<String, String>> getReportPages() {
         return reportPages;
     }
 }

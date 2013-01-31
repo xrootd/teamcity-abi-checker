@@ -93,6 +93,11 @@ h2 {
     margin-top: 7px;
 }
 
+hr {
+    color: #ccc;
+    border-style: none none dotted;
+}
+
 span.section {
     font-weight: bold;
     cursor: pointer;

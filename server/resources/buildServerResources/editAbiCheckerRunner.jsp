@@ -26,8 +26,22 @@
 <jsp:useBean id="constants" class="ch.cern.dss.teamcity.server.AbiCheckerConstantsBean"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
-<c:set var="project" value="${buildForm.settingsBuildType.project}"/>
+<c:choose>
+    <c:when test="${buildForm.template}">
+        <c:set var="project" value="${buildForm.project}"/>
+    </c:when>
+
+    <c:otherwise>
+        <c:set var="project" value="${buildForm.settingsBuildType.project}"/>
+    </c:otherwise>
+</c:choose>
+
 <c:set var="firstBuildType" value="${project.buildTypes[0]}"/>
+
+<c:if test="${constants.buildModeMockKey == propertiesBean.properties[constants.buildModeKey]}">
+    <c:set var="hideArtifactTypeInput" value="style='display: none;'"/>
+</c:if>
+
 <c:set var="changeTags">
     var TagHandler = {
     requestTags: function () {
@@ -68,10 +82,6 @@
     };
     TagHandler.requestTags();
 </c:set>
-
-<c:if test="${constants.buildModeMockKey == propertiesBean.properties[constants.buildModeKey]}">
-    <c:set var="hideArtifactTypeInput" value="style='display: none;'"/>
-</c:if>
 
 <layout:settingsGroup title="Reference Build Settings">
     <tr>

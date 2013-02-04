@@ -58,7 +58,7 @@ public class CompatibilityReportTab extends ViewLogTab {
                                   @NotNull SBuildServer server,
                                   @NotNull PluginDescriptor pluginDescriptor) {
         super(AbiCheckerConstants.TAB_TITLE, AbiCheckerConstants.TAB_ID, pagePlaces, server);
-        addJsFile(pluginDescriptor.getPluginResourcesPath("jquery.easytabs.min.js"));
+        addJsFile(pluginDescriptor.getPluginResourcesPath("js/jquery.easytabs.min.js"));
         setIncludeUrl(pluginDescriptor.getPluginResourcesPath() + "compatibilityReport.jsp");
     }
 

@@ -35,16 +35,15 @@ public class BuildInfoXmlResponseHandler extends DefaultHandler {
     /**
      * @return
      */
-    public Map<String, String> getBuildInfo() {
-        return this.buildInfo;
+    public String getBuildTypeId() {
+        return buildInfo.get("buildTypeId");
     }
 
     /**
      * @return
      */
-    public String getArtifactDownloadUrl() {
-        return "/guestAuth/repository/downloadAll/" + buildInfo.get("buildTypeId") + "/" + buildInfo.get("id") + ":id"
-                + "/artifacts.zip";
+    public String getBuildId() {
+        return buildInfo.get("id");
     }
 
     /**

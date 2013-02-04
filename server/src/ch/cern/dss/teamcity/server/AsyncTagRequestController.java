@@ -112,15 +112,4 @@ public class AsyncTagRequestController extends BaseController {
         }
         xmlResponse.addContent(tags);
     }
-
-    /**
-     * @param request
-     * @param message
-     */
-    private void addMessage(HttpServletRequest request, String message) {
-        if (message != null) {
-            getOrCreateMessages(request).addMessage("abiCheckerMessage", message);
-        }
-    }
-
 }

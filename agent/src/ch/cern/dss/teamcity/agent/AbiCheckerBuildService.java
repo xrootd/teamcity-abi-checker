@@ -19,9 +19,9 @@
 package ch.cern.dss.teamcity.agent;
 
 import ch.cern.dss.teamcity.agent.util.ArchiveExtractor;
-import ch.cern.dss.teamcity.common.IOUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
+import ch.cern.dss.teamcity.common.IOUtil;
 import com.intellij.openapi.util.SystemInfo;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.runner.BuildServiceAdapter;
@@ -35,6 +35,8 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,21 +64,18 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
     @Override
     public void beforeProcessStarted() throws RunBuildException {
         super.beforeProcessStarted();
-
         this.context = new AbiCheckerContext(getRunnerParameters(), getBuildParameters(),
                 getRunnerContext(), getBuildTempDirectory(),
                 getWorkingDirectory());
         this.logger = new SimpleLogger(getLogger());
         this.archiveExtractor = new ArchiveExtractor(this.logger);
 
-        // Download reference artifact zip
+        logger.message("Downloading and extracting reference artifacts");
         String referenceArtifactZipFile = downloadReferenceArtifacts(context.getReferenceBuildType(),
                 context.getReferenceTag());
-
-        // Extract downloaded artifact zip
         extractArtifacts(referenceArtifactZipFile, context.getReferenceArtifactsDirectory());
 
-        // Find the extracted reference files
+        logger.message("Finding reference files");
         List<String> matchedReferenceArtifacts = findFiles(context.getReferenceArtifactsDirectory(),
                 context.getArtifactFilePattern());
 
@@ -91,7 +90,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
             }
         }
 
-        // Find the newly built files
+        logger.message("Finding newly built files");
         List<String> matchedNewArtifacts = findFiles(context.getNewArtifactsDirectory(),
                 context.getArtifactFilePattern());
 
@@ -99,20 +98,12 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         if (artifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_RPM)
                 || artifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_ARCHIVE)) {
 
-            logger.message("Extracting new files");
+            logger.message("Extracting newly built files");
             for (String artifact : matchedNewArtifacts) {
                 extractArtifacts(artifact, new File(artifact).getParent());
             }
         }
-    }
 
-    /**
-     * @return
-     * @throws RunBuildException
-     */
-    @NotNull
-    @Override
-    public ProgramCommandLine makeProgramCommandLine() throws RunBuildException {
         // Find the header and library files
         String headerFilePattern = context.getHeaderFilePattern();
         String libraryFilePattern = context.getLibraryFilePattern();
@@ -133,9 +124,18 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
 
         context.setMatchedFiles(matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, matchedNewHeaderFiles,
                 matchedNewLibraryFiles);
+    }
 
+    /**
+     * @return
+     * @throws RunBuildException
+     */
+    @NotNull
+    @Override
+    public ProgramCommandLine makeProgramCommandLine() throws RunBuildException {
         // Build the arguments, depending on the mode
         ProgramCommandLine commandLine;
+
         if (context.getBuildMode().equals(AbiCheckerConstants.BUILD_MODE_NORMAL)) {
             commandLine = new NormalModeCommandLine(context, logger);
         } else if (context.getBuildMode().equals(AbiCheckerConstants.BUILD_MODE_MOCK)) {
@@ -160,20 +160,37 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
      */
     private String downloadReferenceArtifacts(String buildType, String tag) throws RunBuildException {
         String serverUrl = getAgentConfiguration().getServerUrl();
-        String restUrl = serverUrl + "/guestAuth/app/rest/builds/buildType:" + buildType + ",tag:"
-                + tag + ",personal:false,count:1,status:SUCCESS";
-        BuildInfoXmlResponseHandler handler = new BuildInfoXmlResponseHandler();
+        String restUrl = serverUrl
+                + "/httpAuth/app/rest/builds/buildType:" + buildType
+                + ",tag:" + tag
+                + ",personal:false,count:1,status:SUCCESS";
 
+        // Set the default authenticator
+        Authenticator.setDefault(new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                        getSystemProperties().get("teamcity.auth.userId"),
+                        getSystemProperties().get("teamcity.auth.password").toCharArray());
+            }
+        });
+
+        BuildInfoXmlResponseHandler handler = new BuildInfoXmlResponseHandler();
+        logger.message("url: " + restUrl);
+        logger.message("user: " + getSystemProperties().get("teamcity.auth.userId"));
+        logger.message("pass: " + getSystemProperties().get("teamcity.auth.password"));
         try {
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
             SAXParser saxParser = saxParserFactory.newSAXParser();
             saxParser.parse(new InputSource(new URL(restUrl).openStream()), handler);
-
         } catch (Exception e) {
             throw new RunBuildException("Error determining build info XML", e);
         }
 
-        String referenceArtifactDownloadUrl = serverUrl + handler.getArtifactDownloadUrl();
+        String referenceArtifactDownloadUrl = serverUrl
+                + "/httpAuth/repository/downloadAll/"
+                + handler.getBuildTypeId() + "/" + handler.getBuildId() + ":id"
+                + "/artifacts.zip";
         String referenceArtifactZipFile = getBuildTempDirectory().getAbsolutePath() + "/artifacts-" + tag + ".zip";
 
         try {

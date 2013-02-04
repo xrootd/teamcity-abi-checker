@@ -19,7 +19,6 @@
 package ch.cern.dss.teamcity.server;
 
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
-import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.PropertiesProcessor;
 import jetbrains.buildServer.serverSide.RunType;
 import jetbrains.buildServer.serverSide.RunTypeRegistry;
@@ -35,7 +34,7 @@ import java.util.Map;
  */
 public class AbiCheckerRunType extends RunType {
 
-    private PluginDescriptor pluginDescriptor;
+    private final PluginDescriptor pluginDescriptor;
 
     /**
      * Constructor. Uses spring autowiring feature to request objects from some spring bean in the TeamCity API and

@@ -15,4 +15,4 @@ Compatibility
 
 Compatible with TeamCity 7.x. Not tested on earlier versions.
 
-*Note:* Guest user login must be enabled in your TeamCity configuration for this plugin to work.
+

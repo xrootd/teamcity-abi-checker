@@ -74,7 +74,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         extractArtifacts(referenceArtifactZipFile, context.getReferenceArtifactsDirectory());
 
         logger.message("Finding reference files");
-        logger.message("Matching pattern: " + context.getArtifactFilePattern());
+        logger.message("Matching pattern: " + context.getArtifactFilePattern().replace("\n", " "));
         logger.message("    in directory: " + context.getReferenceArtifactsDirectory());
         List<String> matchedReferenceArtifacts = FileUtil.findFiles(context.getReferenceArtifactsDirectory(),
                 context.getArtifactFilePattern());
@@ -92,7 +92,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         }
 
         logger.message("Finding newly built files");
-        logger.message("Matching pattern: " + context.getArtifactFilePattern());
+        logger.message("Matching pattern: " + context.getArtifactFilePattern().replace("\n", " "));
         logger.message("    in directory: " + context.getNewArtifactsDirectory());
         List<String> matchedNewArtifacts = FileUtil.findFiles(context.getNewArtifactsDirectory(),
                 context.getArtifactFilePattern());
@@ -106,7 +106,6 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
             for (String artifact : matchedNewArtifacts) {
                 String relativePath = new File(new File(context.getNewArtifactsDirectory()).toURI()
                         .relativize(new File(artifact).toURI()).toString()).getParent();
-                logger.message("relpath: " + relativePath);
                 extractArtifacts(artifact, context.getNewExtractedArtifactsDirectory() + File.separator + relativePath);
             }
         }

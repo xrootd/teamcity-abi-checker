@@ -35,7 +35,7 @@ public class CompatibilityReportPageBuilder {
         reportPages = new AbstractMap.SimpleEntry<String, String>
                 (stripCss(reportPages.getKey()), stripCss(reportPages.getValue()));
         this.reportPages = new HashMap<String, Map.Entry<String, String>>();
-        this.reportPages.put("", reportPages);
+        this.reportPages.put("default", reportPages);
     }
 
     /**

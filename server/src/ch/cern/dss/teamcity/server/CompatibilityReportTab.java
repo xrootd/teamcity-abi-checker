@@ -25,14 +25,10 @@ import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildRunnerDescriptor;
 import jetbrains.buildServer.serverSide.SBuildServer;
-import jetbrains.buildServer.serverSide.artifacts.BuildArtifact;
-import jetbrains.buildServer.serverSide.artifacts.BuildArtifacts;
-import jetbrains.buildServer.serverSide.artifacts.BuildArtifactsViewMode;
 import jetbrains.buildServer.web.openapi.PagePlaces;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.ViewLogTab;
 import jetbrains.buildServer.web.reportTabs.ReportTabUtil;
-import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,6 +69,8 @@ public class CompatibilityReportTab extends ViewLogTab {
                           @NotNull SBuild build) {
         try {
             model.put("reportPages", getReportPages(build));
+            model.put("buildMode", build.getBuildType().findBuildRunnerByType(AbiCheckerConstants.TYPE)
+                    .getParameters().get(AbiCheckerConstants.BUILD_MODE));
         } catch (IOException e) {
             Loggers.SERVER.error("Error filling report tab model: " + e.getMessage());
         }

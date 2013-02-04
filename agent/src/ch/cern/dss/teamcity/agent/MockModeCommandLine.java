@@ -69,9 +69,9 @@ public class MockModeCommandLine extends AbiCheckerCommandLine implements Progra
             List<String> matchedReferenceLibraryFiles = FileUtil.findFiles(
                     context.getReferenceArtifactsDirectory() + "/" + chroot, context.getLibraryFilePattern());
             List<String> matchedNewHeaderFiles = FileUtil.findFiles(
-                    context.getNewArtifactsDirectory() + "/" + chroot, context.getHeaderFilePattern());
+                    context.getNewExtractedArtifactsDirectory() + "/" + chroot, context.getHeaderFilePattern());
             List<String> matchedNewLibraryFiles = FileUtil.findFiles(
-                     context.getNewArtifactsDirectory() + "/" + chroot, context.getLibraryFilePattern());
+                     context.getNewExtractedArtifactsDirectory() + "/" + chroot, context.getLibraryFilePattern());
 
             // Write the XML files
             writeXmlDescriptor(context.getReferenceXmlFilename(chroot), context.getReferenceXmlVersion(),
@@ -80,8 +80,7 @@ public class MockModeCommandLine extends AbiCheckerCommandLine implements Progra
             writeXmlDescriptor(context.getNewXmlFilename(chroot), context.getNewXmlVersion(), matchedNewHeaderFiles,
                     matchedNewLibraryFiles, context.getGccOptions());
 
-            context.setMatchedFiles(matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, matchedNewHeaderFiles,
-                    matchedNewLibraryFiles);
+            context.setMatchedLibraryFiles(matchedReferenceLibraryFiles);
         }
     }
 

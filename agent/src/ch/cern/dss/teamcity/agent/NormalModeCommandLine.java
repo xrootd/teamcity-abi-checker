@@ -43,15 +43,14 @@ public class NormalModeCommandLine extends AbiCheckerCommandLine implements Prog
         super(context, logger);
 
         // Find the header and library files
-        String headerFilePattern = context.getHeaderFilePattern();
-        String libraryFilePattern = context.getLibraryFilePattern();
-        String referenceArtifactsDirectory = context.getReferenceArtifactsDirectory();
-        String newArtifactsDirectory = context.getNewArtifactsDirectory();
-
-        List<String> matchedReferenceHeaderFiles = FileUtil.findFiles(referenceArtifactsDirectory, headerFilePattern);
-        List<String> matchedReferenceLibraryFiles = FileUtil.findFiles(referenceArtifactsDirectory, libraryFilePattern);
-        List<String> matchedNewHeaderFiles = FileUtil.findFiles(newArtifactsDirectory, headerFilePattern);
-        List<String> matchedNewLibraryFiles = FileUtil.findFiles(newArtifactsDirectory, libraryFilePattern);
+        List<String> matchedReferenceHeaderFiles
+                = FileUtil.findFiles(context.getReferenceArtifactsDirectory(), context.getHeaderFilePattern());
+        List<String> matchedReferenceLibraryFiles
+                = FileUtil.findFiles(context.getReferenceArtifactsDirectory(), context.getLibraryFilePattern());
+        List<String> matchedNewHeaderFiles
+                = FileUtil.findFiles(context.getNewExtractedArtifactsDirectory(), context.getHeaderFilePattern());
+        List<String> matchedNewLibraryFiles
+                = FileUtil.findFiles(context.getNewExtractedArtifactsDirectory(), context.getLibraryFilePattern());
 
         // Write the XML files
         writeXmlDescriptor(context.getReferenceXmlFilename(), context.getReferenceXmlVersion(),
@@ -60,8 +59,7 @@ public class NormalModeCommandLine extends AbiCheckerCommandLine implements Prog
         writeXmlDescriptor(context.getNewXmlFilename(), context.getNewXmlVersion(), matchedNewHeaderFiles,
                 matchedNewLibraryFiles, context.getGccOptions());
 
-        context.setMatchedFiles(matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, matchedNewHeaderFiles,
-                matchedNewLibraryFiles);
+        context.setMatchedLibraryFiles(matchedReferenceLibraryFiles);
     }
 
     /**

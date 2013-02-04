@@ -32,11 +32,7 @@ public class AbiCheckerContext {
     private final BuildRunnerContext runnerContext;
     private final File buildTempDirectory;
     private final File workingDirectory;
-
-    List<String> matchedReferenceHeaderFiles;
-    List<String> matchedReferenceLibraryFiles;
-    List<String> matchedNewHeaderFiles;
-    List<String> matchedNewLibraryFiles;
+    private List<String> matchedLibraryFiles;
 
     public AbiCheckerContext(final Map<String, String> runnerParameters, final BuildParametersMap buildParameters,
                              final BuildRunnerContext runnerContext, final File buildTempDirectory,
@@ -60,38 +56,6 @@ public class AbiCheckerContext {
         return runnerParameters.get(AbiCheckerConstants.REFERENCE_TAG);
     }
 
-    public String getArtifactFilePattern() {
-        return runnerParameters.get(AbiCheckerConstants.ARTIFACT_FILE_PATTERN);
-    }
-
-    public String getArtifactType() {
-        return runnerParameters.get(AbiCheckerConstants.ARTIFACT_TYPE);
-    }
-
-    public String getNewArtifactsDirectory() {
-        return runnerContext.getBuild().getArtifactsPaths();
-    }
-
-    public String getBuildTempDirectory() {
-        return buildTempDirectory.getAbsolutePath();
-    }
-
-    public File getWorkingDirectory() {
-        return workingDirectory;
-    }
-
-    public String getHeaderFilePattern() {
-        return runnerParameters.get(AbiCheckerConstants.HEADER_FILE_PATTERN);
-    }
-
-    public String getLibraryFilePattern() {
-        return runnerParameters.get(AbiCheckerConstants.LIBRARY_FILE_PATTERN);
-    }
-
-    public String getGccOptions() {
-        return runnerParameters.get(AbiCheckerConstants.GCC_OPTIONS);
-    }
-
     public String getReferenceBuildTypeName() {
         return runnerParameters.get(AbiCheckerConstants.REFERENCE_BUILD_TYPE_NAME);
     }
@@ -108,6 +72,14 @@ public class AbiCheckerContext {
         return getReferenceBuildTypeName() + " " + getReferenceTag();
     }
 
+    public String getNewArtifactsDirectory() {
+        return runnerContext.getBuild().getArtifactsPaths();
+    }
+
+    public String getNewExtractedArtifactsDirectory() {
+        return new File(getReferenceArtifactsDirectory()).getParent() + "/new-artifacts-extracted";
+    }
+
     public String getNewXmlFilename() {
         return buildTempDirectory + File.separator + runnerContext.getBuild().getBuildNumber() + ".xml";
     }
@@ -121,8 +93,36 @@ public class AbiCheckerContext {
                 + " build #" + runnerContext.getBuild().getBuildNumber();
     }
 
+    public String getArtifactFilePattern() {
+        return runnerParameters.get(AbiCheckerConstants.ARTIFACT_FILE_PATTERN);
+    }
+
+    public String getArtifactType() {
+        return runnerParameters.get(AbiCheckerConstants.ARTIFACT_TYPE);
+    }
+
+    public String getHeaderFilePattern() {
+        return runnerParameters.get(AbiCheckerConstants.HEADER_FILE_PATTERN);
+    }
+
+    public String getLibraryFilePattern() {
+        return runnerParameters.get(AbiCheckerConstants.LIBRARY_FILE_PATTERN);
+    }
+
+    public String getGccOptions() {
+        return runnerParameters.get(AbiCheckerConstants.GCC_OPTIONS);
+    }
+
     public String getBuildMode() {
         return runnerParameters.get(AbiCheckerConstants.BUILD_MODE);
+    }
+
+    public String getBuildTempDirectory() {
+        return buildTempDirectory.getAbsolutePath();
+    }
+
+    public File getWorkingDirectory() {
+        return workingDirectory;
     }
 
     public BuildParametersMap getBuildParameters() {
@@ -137,33 +137,17 @@ public class AbiCheckerContext {
         return runnerParameters.get(AbiCheckerConstants.EXECUTABLE_PATH);
     }
 
-    public void setMatchedFiles(List<String> matchedReferenceHeaderFiles, List<String> matchedReferenceLibraryFiles,
-                                List<String> matchedNewHeaderFiles, List<String> matchedNewLibraryFiles) {
-        this.matchedReferenceHeaderFiles = matchedReferenceHeaderFiles;
-        this.matchedReferenceLibraryFiles = matchedReferenceLibraryFiles;
-        this.matchedNewHeaderFiles = matchedNewHeaderFiles;
-        this.matchedNewLibraryFiles = matchedNewLibraryFiles;
+    public void setMatchedLibraryFiles(List<String> matchedReferenceLibraryFiles) {
+        this.matchedLibraryFiles = matchedReferenceLibraryFiles;
     }
 
-    public List<String> getMatchedReferenceHeaderFiles() {
-        return matchedReferenceHeaderFiles;
-    }
-
-    public List<String> getMatchedReferenceLibraryFiles() {
-        return matchedReferenceLibraryFiles;
-    }
-
-    public List<String> getMatchedNewHeaderFiles() {
-        return matchedNewHeaderFiles;
-    }
-
-    public List<String> getMatchedNewLibraryFiles() {
-        return matchedNewLibraryFiles;
+    public List<String> getMatchedLibraryFiles() {
+        return matchedLibraryFiles;
     }
 
     public Set<String> getLibNames() {
         Set<String> libNames = new HashSet<String>();
-        for (String libName : getMatchedReferenceLibraryFiles()) {
+        for (String libName : getMatchedLibraryFiles()) {
             libNames.add(new File(libName).getName());
         }
         return libNames;

@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -73,8 +74,11 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         extractArtifacts(referenceArtifactZipFile, context.getReferenceArtifactsDirectory());
 
         logger.message("Finding reference files");
+        logger.message("Matching pattern: " + context.getArtifactFilePattern());
+        logger.message("    in directory: " + context.getReferenceArtifactsDirectory());
         List<String> matchedReferenceArtifacts = FileUtil.findFiles(context.getReferenceArtifactsDirectory(),
                 context.getArtifactFilePattern());
+        logger.message("Matched files: " + Arrays.toString(matchedReferenceArtifacts.toArray()));
 
         // Extract the reference files if necessary
         String artifactType = context.getArtifactType();
@@ -88,8 +92,11 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         }
 
         logger.message("Finding newly built files");
+        logger.message("Matching pattern: " + context.getArtifactFilePattern());
+        logger.message("    in directory: " + context.getNewArtifactsDirectory());
         List<String> matchedNewArtifacts = FileUtil.findFiles(context.getNewArtifactsDirectory(),
                 context.getArtifactFilePattern());
+        logger.message("Matched files: " + Arrays.toString(matchedNewArtifacts.toArray()));
 
         // Extract the newly built files if necessary
         if (artifactType.equals(AbiCheckerConstants.ARTIFACT_TYPE_RPM)
@@ -97,8 +104,16 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
 
             logger.message("Extracting newly built files");
             for (String artifact : matchedNewArtifacts) {
-                extractArtifacts(artifact, new File(artifact).getParent());
+                String relativePath = new File(new File(context.getNewArtifactsDirectory()).toURI()
+                        .relativize(new File(artifact).toURI()).toString()).getParent();
+                logger.message("relpath: " + relativePath);
+                extractArtifacts(artifact, context.getNewExtractedArtifactsDirectory() + File.separator + relativePath);
             }
+        }
+
+        if (matchedReferenceArtifacts.size() != matchedNewArtifacts.size()) {
+            logger.warning("Number of reference artifacts (" + matchedReferenceArtifacts.size() +
+                    ") differs from number of new artifacts (" + matchedNewArtifacts.size() + ")");
         }
     }
 

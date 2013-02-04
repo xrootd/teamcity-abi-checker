@@ -55,6 +55,7 @@ public class ArchiveExtractor {
     public void extract(String archivePath, String outputFolder)
             throws CompressorException, ArchiveException, IOException, InterruptedException, RunBuildException {
         logger.message("Extracting archive: " + archivePath);
+        logger.message("    to directory: " + outputFolder);
 
         if (!new File(archivePath).exists()) {
             throw new FileNotFoundException("Archive not found: " + archivePath);

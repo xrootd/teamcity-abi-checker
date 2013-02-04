@@ -19,15 +19,13 @@
 package ch.cern.dss.teamcity.agent;
 
 import ch.cern.dss.teamcity.agent.util.ArchiveExtractor;
+import ch.cern.dss.teamcity.agent.util.FileUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import ch.cern.dss.teamcity.common.IOUtil;
-import com.intellij.openapi.util.SystemInfo;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.runner.BuildServiceAdapter;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
-import jetbrains.buildServer.util.AntPatternFileFinder;
-import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.InputSource;
 
@@ -38,7 +36,6 @@ import java.io.IOException;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -76,7 +73,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         extractArtifacts(referenceArtifactZipFile, context.getReferenceArtifactsDirectory());
 
         logger.message("Finding reference files");
-        List<String> matchedReferenceArtifacts = findFiles(context.getReferenceArtifactsDirectory(),
+        List<String> matchedReferenceArtifacts = FileUtil.findFiles(context.getReferenceArtifactsDirectory(),
                 context.getArtifactFilePattern());
 
         // Extract the reference files if necessary
@@ -91,7 +88,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         }
 
         logger.message("Finding newly built files");
-        List<String> matchedNewArtifacts = findFiles(context.getNewArtifactsDirectory(),
+        List<String> matchedNewArtifacts = FileUtil.findFiles(context.getNewArtifactsDirectory(),
                 context.getArtifactFilePattern());
 
         // Extract the newly built files if necessary
@@ -103,27 +100,6 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
                 extractArtifacts(artifact, new File(artifact).getParent());
             }
         }
-
-        // Find the header and library files
-        String headerFilePattern = context.getHeaderFilePattern();
-        String libraryFilePattern = context.getLibraryFilePattern();
-        String referenceArtifactsDirectory = context.getReferenceArtifactsDirectory();
-        String newArtifactsDirectory = context.getNewArtifactsDirectory();
-
-        List<String> matchedReferenceHeaderFiles = findFiles(referenceArtifactsDirectory, headerFilePattern);
-        List<String> matchedReferenceLibraryFiles = findFiles(referenceArtifactsDirectory, libraryFilePattern);
-        List<String> matchedNewHeaderFiles = findFiles(newArtifactsDirectory, headerFilePattern);
-        List<String> matchedNewLibraryFiles = findFiles(newArtifactsDirectory, libraryFilePattern);
-
-        // Write the XML files
-        writeXmlDescriptor(context.getReferenceXmlFilename(), context.getReferenceXmlVersion(),
-                matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, context.getGccOptions());
-
-        writeXmlDescriptor(context.getNewXmlFilename(), context.getNewXmlVersion(), matchedNewHeaderFiles,
-                matchedNewLibraryFiles, context.getGccOptions());
-
-        context.setMatchedFiles(matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, matchedNewHeaderFiles,
-                matchedNewLibraryFiles);
     }
 
     /**
@@ -176,9 +152,7 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         });
 
         BuildInfoXmlResponseHandler handler = new BuildInfoXmlResponseHandler();
-        logger.message("url: " + restUrl);
-        logger.message("user: " + getSystemProperties().get("teamcity.auth.userId"));
-        logger.message("pass: " + getSystemProperties().get("teamcity.auth.password"));
+
         try {
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
             SAXParser saxParser = saxParserFactory.newSAXParser();
@@ -218,97 +192,5 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
         }
     }
 
-    /**
-     * @param searchDirectory
-     * @param filePattern
-     *
-     * @return
-     * @throws RunBuildException
-     */
-    private List<String> findFiles(String searchDirectory, String filePattern) throws RunBuildException {
-        List<String> matchedFiles;
-        try {
-            matchedFiles = matchFiles(searchDirectory, filePattern);
-            if (matchedFiles.size() == 0) {
-                throw new RunBuildException("No files matched the pattern");
-            }
-        } catch (IOException e) {
-            throw new RunBuildException("I/O error while collecting files", e);
-        }
-        return matchedFiles;
-    }
 
-    /**
-     * @param filename
-     * @param version
-     * @param headers
-     * @param libs
-     * @param gccOptions
-     *
-     * @return
-     * @throws RunBuildException
-     */
-    private File writeXmlDescriptor(String filename, String version, List<String> headers, List<String> libs,
-                                    String gccOptions) throws RunBuildException {
-        String descriptor = "" +
-                "<version>" + version + "</version>" +
-                "<headers>" + StringUtil.join(headers, "\n") + "</headers>" +
-                "<libs>" + StringUtil.join(libs, "\n") + "</libs>" +
-                "<gcc_options>" + gccOptions + "</gcc_options>";
-
-        File xmlFile;
-        try {
-            xmlFile = IOUtil.writeFile(filename, descriptor);
-        } catch (IOException e) {
-            throw new RunBuildException("Error writing XML descriptor", e);
-        }
-        return xmlFile;
-    }
-
-    /**
-     * Returns *absolute* path
-     *
-     * @param filePath
-     * @param fileString
-     *
-     * @return
-     * @throws IOException
-     */
-    private List<String> matchFiles(String filePath, String fileString) throws IOException {
-        logger.message("Trying to match '" + fileString + "' in directory: " + filePath);
-
-        final AntPatternFileFinder finder = new AntPatternFileFinder(splitFileWildcards(fileString),
-                new String[]{},
-                SystemInfo.isFileSystemCaseSensitive);
-        final File[] files = finder.findFiles(new File(filePath));
-
-        logger.message("Matched artifact files:");
-
-        final List<String> result = new ArrayList<String>(files.length);
-        for (File file : files) {
-            result.add(file.getAbsolutePath());
-            logger.message("  " + file);
-        }
-
-        if (files.length == 0) {
-            logger.message("  none");
-        }
-
-        return result;
-    }
-
-    /**
-     * @param string
-     *
-     * @return
-     */
-    private String[] splitFileWildcards(final String string) {
-        if (string != null) {
-            final String filesStringWithSpaces = string.replace('\n', ' ').replace('\r', ' ').replace('\\', '/');
-            final List<String> split = StringUtil.splitCommandArgumentsAndUnquote(filesStringWithSpaces);
-            return split.toArray(new String[split.size()]);
-        }
-
-        return new String[0];
-    }
 }

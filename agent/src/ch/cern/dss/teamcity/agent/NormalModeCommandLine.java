@@ -18,6 +18,7 @@
 
 package ch.cern.dss.teamcity.agent;
 
+import ch.cern.dss.teamcity.agent.util.FileUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.RunBuildException;
@@ -25,8 +26,6 @@ import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -34,18 +33,52 @@ import java.util.Vector;
 /**
  *
  */
-public class NormalModeCommandLine implements ProgramCommandLine {
-
-    private final SimpleLogger logger;
-    private final AbiCheckerContext context;
+public class NormalModeCommandLine extends AbiCheckerCommandLine implements ProgramCommandLine {
 
     /**
      * @param context
      * @param logger
      */
-    public NormalModeCommandLine(AbiCheckerContext context, SimpleLogger logger) {
-        this.context = context;
-        this.logger = logger;
+    public NormalModeCommandLine(AbiCheckerContext context, SimpleLogger logger) throws RunBuildException {
+        super(context, logger);
+
+        // Find the header and library files
+        String headerFilePattern = context.getHeaderFilePattern();
+        String libraryFilePattern = context.getLibraryFilePattern();
+        String referenceArtifactsDirectory = context.getReferenceArtifactsDirectory();
+        String newArtifactsDirectory = context.getNewArtifactsDirectory();
+
+        List<String> matchedReferenceHeaderFiles = FileUtil.findFiles(referenceArtifactsDirectory, headerFilePattern);
+        List<String> matchedReferenceLibraryFiles = FileUtil.findFiles(referenceArtifactsDirectory, libraryFilePattern);
+        List<String> matchedNewHeaderFiles = FileUtil.findFiles(newArtifactsDirectory, headerFilePattern);
+        List<String> matchedNewLibraryFiles = FileUtil.findFiles(newArtifactsDirectory, libraryFilePattern);
+
+        // Write the XML files
+        writeXmlDescriptor(context.getReferenceXmlFilename(), context.getReferenceXmlVersion(),
+                matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, context.getGccOptions());
+
+        writeXmlDescriptor(context.getNewXmlFilename(), context.getNewXmlVersion(), matchedNewHeaderFiles,
+                matchedNewLibraryFiles, context.getGccOptions());
+
+        context.setMatchedFiles(matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, matchedNewHeaderFiles,
+                matchedNewLibraryFiles);
+    }
+
+    /**
+     * @return
+     * @throws RunBuildException
+     */
+    @NotNull
+    public String getExecutablePath() throws RunBuildException {
+        return context.getAbiCheckerExecutablePath();
+    }
+
+    /**
+     * @return
+     * @throws RunBuildException
+     */
+    public String getWorkingDirectory() throws RunBuildException {
+        return context.getWorkingDirectory().getAbsolutePath();
     }
 
     /**
@@ -93,22 +126,5 @@ public class NormalModeCommandLine implements ProgramCommandLine {
     @Override
     public Map<String, String> getEnvironment() throws RunBuildException {
         return context.getEnvironment();
-    }
-
-    /**
-     * @return
-     * @throws RunBuildException
-     */
-    @NotNull
-    public String getExecutablePath() throws RunBuildException {
-        return context.getAbiCheckerExecutablePath();
-    }
-
-    /**
-     * @return
-     * @throws RunBuildException
-     */
-    public String getWorkingDirectory() throws RunBuildException {
-        return context.getWorkingDirectory().getAbsolutePath();
     }
 }

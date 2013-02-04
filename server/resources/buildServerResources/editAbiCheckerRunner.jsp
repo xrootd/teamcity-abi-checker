@@ -38,9 +38,15 @@
 
 <c:set var="firstBuildType" value="${project.buildTypes[0]}"/>
 
-<c:if test="${constants.buildModeMockKey == propertiesBean.properties[constants.buildModeKey]}">
-    <c:set var="hideArtifactTypeInput" value="style='display: none;'"/>
-</c:if>
+<c:choose>
+    <c:when test="${constants.buildModeMockKey == propertiesBean.properties[constants.buildModeKey]}">
+        <c:set var="hideNormalModeOptions" value="style='display: none;'"/>
+    </c:when>
+
+    <c:when test="${constants.buildModeNormalKey == propertiesBean.properties[constants.buildModeKey]}">
+        <c:set var="hideMockModeOptions" value="style='display: none;'"/>
+    </c:when>
+</c:choose>
 
 <c:set var="changeTags">
     var TagHandler = {
@@ -118,7 +124,8 @@
         <th><label>Build mode:</label></th>
         <td>
             <c:set var="onclick">
-                BS.Util.show('artifactTypeSection');
+                jQuery('.mockModeOption').hide();
+                jQuery('.normalModeOption').show();
             </c:set>
             <props:radioButtonProperty name="${constants.buildModeKey}"
                                        value="${constants.buildModeNormalKey}"
@@ -127,7 +134,8 @@
             <label for="${constants.buildModeNormalKey}">Normal build</label>
 
             <c:set var="onclick">
-                BS.Util.hide('artifactTypeSection');
+                jQuery('.normalModeOption').hide();
+                jQuery('.mockModeOption').show();
             </c:set>
             <props:radioButtonProperty name="${constants.buildModeKey}"
                                        value="${constants.buildModeMockKey}"
@@ -140,7 +148,7 @@
             compatibility check inside mock for all listed architectures.</span>
         </td>
     </tr>
-    <tr id="artifactTypeSection" ${hideArtifactTypeInput}>
+    <tr class="normalModeOption" ${hideNormalModeOptions}>
         <th><label>Artifact type:</label></th>
         <td>
             <props:radioButtonProperty name="${constants.artifactTypeKey}"
@@ -175,7 +183,7 @@
 </layout:settingsGroup>
 
 <layout:settingsGroup title="ABI Compatibility Checker Settings">
-    <tr>
+    <tr class="normalModeOption" ${hideNormalModeOptions}>
         <th><label for="${constants.abiCheckerExecutablePathKey}">Executable path: </label></th>
         <td>
             <props:textProperty name="${constants.abiCheckerExecutablePathKey}" className="longField"
@@ -194,8 +202,10 @@
                                      cols="55" rows="5"
                                      expanded="true"/>
             <span class="error" id="error_${constants.artifactHeaderFilesKey}"></span>
-        <span class="smallNote">Specify the header files <b>(relative to the extracted artifact)</b> to be checked.
-            Wildcards accepted (e.g. include/foo/*.h).</span>
+        <span class="smallNote normalModeOption" ${hideNormalModeOptions}>Specify the header files <b>(relative to the
+            extracted artifact)</b> to be checked. Ant-like wildcards accepted (e.g. include/foo/*.h).</span>
+            <span class="smallNote mockModeOption" ${hideMockModeOptions}>Specify the header files <b>(relative to the
+                chroot)</b> to be checked. Ant-like wildcards accepted (e.g. usr/include/foo/*.h)</span>
         </td>
     </tr>
     <tr>
@@ -207,8 +217,10 @@
                                      cols="55" rows="5"
                                      expanded="true"/>
             <span class="error" id="error_${constants.artifactLibraryFilesKey}"></span>
-        <span class="smallNote">Specify the shared library files <b>(relative to the extracted artifact)</b> to be
-            checked. Wildcards accepted (e.g. lib64/*.so)</span>
+        <span class="smallNote normalModeOption" ${hideNormalModeOptions}>Specify the shared library files <b>(relative
+            to the extracted artifact)</b> to be checked. Ant-like wildcards accepted (e.g. lib64/foo*.so)</span>
+            <span class="smallNote mockModeOption" ${hideMockModeOptions}>Specify the shared library files <b>(relative
+                to the chroot)</b> to be checked. Ant-like wildcards accepted (e.g. usr/lib64/foo*.so)</span>
         </td>
     </tr>
     <tr>

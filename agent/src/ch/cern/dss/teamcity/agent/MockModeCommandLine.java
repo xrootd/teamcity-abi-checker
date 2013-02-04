@@ -18,9 +18,10 @@
 
 package ch.cern.dss.teamcity.agent;
 
-import ch.cern.dss.teamcity.common.IOUtil;
+import ch.cern.dss.teamcity.agent.util.FileUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
+import ch.cern.dss.teamcity.common.IOUtil;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.StringUtil;
@@ -36,21 +37,18 @@ import java.util.Vector;
 /**
  *
  */
-public class MockModeCommandLine implements ProgramCommandLine {
+public class MockModeCommandLine extends AbiCheckerCommandLine implements ProgramCommandLine {
 
-    private final SimpleLogger logger;
-    private final AbiCheckerContext context;
     private final MockEnvironmentBuilder mockEnvironmentBuilder;
 
     /**
-     *
      * @param context
      * @param logger
+     *
      * @throws RunBuildException
      */
     public MockModeCommandLine(AbiCheckerContext context, SimpleLogger logger) throws RunBuildException {
-        this.context = context;
-        this.logger = logger;
+        super(context, logger);
 
         logger.message("Setting up mock context");
 
@@ -62,10 +60,32 @@ public class MockModeCommandLine implements ProgramCommandLine {
 
         mockEnvironmentBuilder = new MockEnvironmentBuilder(mockMetaDirectory, logger);
         mockEnvironmentBuilder.setup();
+
+        // Write xml descriptor for each chroot
+        for (String chroot : mockEnvironmentBuilder.getChroots()) {
+
+            List<String> matchedReferenceHeaderFiles = FileUtil.findFiles(
+                    context.getReferenceArtifactsDirectory() + "/" + chroot, context.getHeaderFilePattern());
+            List<String> matchedReferenceLibraryFiles = FileUtil.findFiles(
+                    context.getReferenceArtifactsDirectory() + "/" + chroot, context.getLibraryFilePattern());
+            List<String> matchedNewHeaderFiles = FileUtil.findFiles(
+                    context.getNewArtifactsDirectory() + "/" + chroot, context.getHeaderFilePattern());
+            List<String> matchedNewLibraryFiles = FileUtil.findFiles(
+                     context.getNewArtifactsDirectory() + "/" + chroot, context.getLibraryFilePattern());
+
+            // Write the XML files
+            writeXmlDescriptor(context.getReferenceXmlFilename(chroot), context.getReferenceXmlVersion(),
+                    matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, context.getGccOptions());
+
+            writeXmlDescriptor(context.getNewXmlFilename(chroot), context.getNewXmlVersion(), matchedNewHeaderFiles,
+                    matchedNewLibraryFiles, context.getGccOptions());
+
+            context.setMatchedFiles(matchedReferenceHeaderFiles, matchedReferenceLibraryFiles, matchedNewHeaderFiles,
+                    matchedNewLibraryFiles);
+        }
     }
 
     /**
-     *
      * @return
      * @throws RunBuildException
      */
@@ -76,7 +96,6 @@ public class MockModeCommandLine implements ProgramCommandLine {
     }
 
     /**
-     *
      * @return
      * @throws RunBuildException
      */
@@ -87,7 +106,6 @@ public class MockModeCommandLine implements ProgramCommandLine {
     }
 
     /**
-     *
      * @return
      * @throws RunBuildException
      */
@@ -132,6 +150,8 @@ public class MockModeCommandLine implements ProgramCommandLine {
             command.append(AbiCheckerConstants.MOCK_EXECUTABLE)
                     .append(" --configdir=").append(context.getWorkingDirectory().getAbsolutePath())
                     .append(" -r ").append(chroot)
+                    .append(" -q ")
+                    .append(" --cache-alterations ")
                     .append(" --install abi-compliance-checker ctags\n");
 
             command.append(AbiCheckerConstants.MOCK_EXECUTABLE)
@@ -142,8 +162,8 @@ public class MockModeCommandLine implements ProgramCommandLine {
                     .append(" -show-retval")
                     .append(" -lib ").append(StringUtil.join(context.getLibNames(), ", "))
                     .append(" -component ").append(context.getLibNames().size() > 1 ? "libraries" : "library")
-                    .append(" -old ").append(context.getReferenceXmlFilename())
-                    .append(" -new ").append(context.getNewXmlFilename())
+                    .append(" -old ").append(context.getReferenceXmlFilename(chroot))
+                    .append(" -new ").append(context.getNewXmlFilename(chroot))
                     .append(" -binary -bin-report-path ").append(context.getNewArtifactsDirectory())
                     .append("/").append(chroot).append(AbiCheckerConstants.REPORT_DIRECTORY)
                     .append(AbiCheckerConstants.ABI_REPORT)
@@ -170,7 +190,6 @@ public class MockModeCommandLine implements ProgramCommandLine {
     }
 
     /**
-     *
      * @return
      * @throws RunBuildException
      */

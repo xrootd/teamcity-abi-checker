@@ -100,12 +100,20 @@ public class AbiCheckerContext {
         return buildTempDirectory + File.separator + getReferenceTag() + ".xml";
     }
 
+    public String getReferenceXmlFilename(String chroot) {
+        return buildTempDirectory + File.separator + getReferenceTag() + "-" + chroot + ".xml";
+    }
+
     public String getReferenceXmlVersion() {
         return getReferenceBuildTypeName() + " " + getReferenceTag();
     }
 
     public String getNewXmlFilename() {
         return buildTempDirectory + File.separator + runnerContext.getBuild().getBuildNumber() + ".xml";
+    }
+
+    public String getNewXmlFilename(String chroot) {
+        return buildTempDirectory + File.separator + runnerContext.getBuild().getBuildNumber() + "-" + chroot + ".xml";
     }
 
     public String getNewXmlVersion() {

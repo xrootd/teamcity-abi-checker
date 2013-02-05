@@ -42,15 +42,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- */
 public class CompatibilityReportTab extends ViewLogTab {
 
     /**
-     * @param pagePlaces
-     * @param server
-     * @param pluginDescriptor
+     * @param pagePlaces       the object with which we register this page extension.
+     * @param server           the build server.
+     * @param pluginDescriptor the plugin descriptor.
      */
     public CompatibilityReportTab(@NotNull PagePlaces pagePlaces,
                                   @NotNull SBuildServer server,
@@ -61,9 +58,11 @@ public class CompatibilityReportTab extends ViewLogTab {
     }
 
     /**
-     * @param model
-     * @param request
-     * @param build
+     * Called when the user clicks on the custom report tab.
+     *
+     * @param model   the map of data objects that will be passed to the JSP page.
+     * @param request the HTTP request object.
+     * @param build   the current build.
      */
     @Override
     public void fillModel(@NotNull Map<String, Object> model,
@@ -79,9 +78,11 @@ public class CompatibilityReportTab extends ViewLogTab {
     }
 
     /**
-     * @param build
+     * Get the appropriate report pages based on the current build mode.
      *
-     * @return
+     * @param build the current build.
+     *
+     * @return map of report pages.
      * @throws IOException
      */
     private Map<String, Map.Entry<String, String>> getReportPages(SBuild build) throws IOException {
@@ -112,10 +113,12 @@ public class CompatibilityReportTab extends ViewLogTab {
     }
 
     /**
-     * @param request
-     * @param build
+     * Perform checks to see whether this page is available to be displayed or not.
      *
-     * @return
+     * @param request the HTTP request object.
+     * @param build   the current build.
+     *
+     * @return true if the page is available, false otherwise.
      */
     @Override
     protected boolean isAvailable(@NotNull HttpServletRequest request, @NotNull SBuild build) {
@@ -154,9 +157,12 @@ public class CompatibilityReportTab extends ViewLogTab {
     }
 
     /**
-     * @param build
+     * Get report pages for mock build mode. These pages will need to go inside sub-tabs in the web UI, hence the nested
+     * maps.
      *
-     * @return
+     * @param build the current buiild.
+     *
+     * @return the map of mock report pages.
      * @throws IOException
      */
     @Nullable
@@ -199,9 +205,11 @@ public class CompatibilityReportTab extends ViewLogTab {
     }
 
     /**
-     * @param metaFile
+     * Parse a list of chroots to use from the specified metadata file.
      *
-     * @return
+     * @param metaFile the metadata file that contains the chroot definitions.
+     *
+     * @return a list of chroots to use.
      */
     @Nullable
     private List<String> parseChroots(File metaFile) {

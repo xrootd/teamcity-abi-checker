@@ -27,15 +27,16 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 
 /**
- *
+ * Useful IO utilities.
  */
 public class IOUtil {
 
     /**
+     * Execute the specified system command.
+     *
      * @param command array of commands, needed for pipes to work
      *
-     * @return
-     *
+     * @return the process output and exit code.
      * @throws InterruptedException
      * @throws IOException
      */
@@ -63,8 +64,10 @@ public class IOUtil {
     }
 
     /**
-     * @param filename
-     * @param urlString
+     * Download the file at the end of the specified URL and save it to the given filename.
+     *
+     * @param filename  the name of the file to save.
+     * @param urlString the URL to retrieve.
      *
      * @throws IOException
      */
@@ -89,9 +92,11 @@ public class IOUtil {
     }
 
     /**
+     * Read a file on the local filesystem into a string.
      *
-     * @param path
-     * @return
+     * @param path the path to the file to read
+     *
+     * @return the contents of the file, as a string.
      * @throws IOException
      */
     public static String readFile(String path) throws IOException {
@@ -100,16 +105,17 @@ public class IOUtil {
             FileChannel channel = stream.getChannel();
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
             return Charset.defaultCharset().decode(buffer).toString();
-        }
-        finally {
+        } finally {
             stream.close();
         }
     }
 
     /**
+     * Write the contents of the given string to a file with the specified name.
      *
-     * @param filename
-     * @param text
+     * @param filename the path of the file to write.
+     * @param text     the text to write to the file.
+     *
      * @throws IOException
      */
     public static File writeFile(String filename, String text) throws IOException {

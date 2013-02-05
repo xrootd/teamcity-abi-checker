@@ -56,25 +56,13 @@ public class AsyncTagRequestController extends BaseController {
     }
 
     /**
-     * @param e
+     * This method gets called when <teamcity_url>/requestTags.html is accessed. We handle the request asynchronously
+     * and add any errors into the response, along with the requested information.
      *
-     * @return
-     */
-    static private String getMessageWithNested(Throwable e) {
-        String result = e.getMessage();
-        Throwable cause = e.getCause();
-        if (cause != null) {
-            result += " Caused by: " + getMessageWithNested(cause);
-        }
-        return result;
-    }
-
-    /**
-     * @param request
-     * @param response
+     * @param request  the HTTP request object.
+     * @param response the HTTP response object.
      *
-     * @return
-     *
+     * @return null
      * @throws Exception
      */
     @Nullable
@@ -90,7 +78,7 @@ public class AsyncTagRequestController extends BaseController {
                         } catch (Exception e) {
                             Loggers.SERVER.warn(e);
                             ActionErrors errors = new ActionErrors();
-                            errors.addError("abiCheckerProblem", getMessageWithNested(e));
+                            errors.addError("abiCheckerProblem", e.getMessage());
                             errors.serialize(xmlResponse);
                         }
                     }
@@ -99,8 +87,11 @@ public class AsyncTagRequestController extends BaseController {
     }
 
     /**
-     * @param request
-     * @param xmlResponse
+     * Retrieve the list of tags from the build type, as specified by the build type ID passed in the request. The
+     * tags are then serialized into an XML element.
+     *
+     * @param request     the HTTP request object.
+     * @param xmlResponse the response element to write to.
      *
      * @throws Exception
      */

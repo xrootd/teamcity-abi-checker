@@ -31,7 +31,9 @@ public class CompatibilityReportPageBuilder {
     Map<String, Map.Entry<String, String>> reportPages;
 
     /**
-     * @param reportPages
+     * Constructor for normal build mode.
+     *
+     * @param reportPages the map of report pages.
      */
     public CompatibilityReportPageBuilder(Map.Entry<String, String> reportPages) {
         reportPages = new AbstractMap.SimpleEntry<String, String>
@@ -41,7 +43,9 @@ public class CompatibilityReportPageBuilder {
     }
 
     /**
-     * @param reportPages
+     * Constructor for mock build mode.
+     *
+     * @param reportPages the map of report pages.
      */
     public CompatibilityReportPageBuilder(Map<String, Map.Entry<String, String>> reportPages) {
         Map<String, Map.Entry<String, String>> replacedPages = new HashMap<String, Map.Entry<String, String>>();
@@ -55,9 +59,11 @@ public class CompatibilityReportPageBuilder {
     }
 
     /**
-     * @param reportPage
+     * Strip the default CSS from the generated abi-compliance-checker report.
      *
-     * @return
+     * @param reportPage the page to strip CSS from.
+     *
+     * @return the stripped page.
      */
     private String stripCss(String reportPage) {
         Pattern pattern = Pattern.compile("<style type=\"text/css\">.+</style>", Pattern.MULTILINE | Pattern.DOTALL);
@@ -83,7 +89,7 @@ public class CompatibilityReportPageBuilder {
     }
 
     /**
-     * @return
+     * @return the prepared report pages.
      */
     public Map<String, Map.Entry<String, String>> getReportPages() {
         return reportPages;

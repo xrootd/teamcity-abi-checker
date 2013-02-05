@@ -24,166 +24,204 @@ import ch.cern.dss.teamcity.common.IOUtil;
 import ch.cern.dss.teamcity.common.SystemCommandResult;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.log.Loggers;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 
 /**
- *
+ * Generic class to extract archives (tar, bz2, gz, zip, cpio, rpm) based on the file extension.
  */
 public class ArchiveExtractor {
 
     private SimpleLogger logger;
 
     /**
-     * @param logger
+     * @param logger the build progress logger.
      */
     public ArchiveExtractor(SimpleLogger logger) {
         this.logger = logger;
     }
 
     /**
-     * @param archivePath
-     * @param outputFolder
+     * Extract the archive at the specified path to the specified directory. The method will attempt to discover the
+     * type of the archive.
      *
-     * @throws CompressorException
-     * @throws ArchiveException
-     * @throws IOException
-     * @throws InterruptedException
+     * @param archivePath     the path to the archive file.
+     * @param outputDirectory the extraction target directory.
+     *
+     * @throws RunBuildException to break the build.
      */
-    public void extract(String archivePath, String outputFolder)
-            throws CompressorException, ArchiveException, IOException, InterruptedException, RunBuildException {
+    public void extract(String archivePath, String outputDirectory) throws RunBuildException {
         logger.message("Extracting archive: " + archivePath);
-        logger.message("    to directory: " + outputFolder);
 
         if (!new File(archivePath).exists()) {
-            throw new FileNotFoundException("Archive not found: " + archivePath);
+            throw new RunBuildException("Archive not found: " + archivePath);
         }
 
-        File folder = new File(outputFolder);
+        File folder = new File(outputDirectory);
         if (!folder.exists()) {
             folder.mkdirs();
         }
 
         if (archivePath.endsWith(".gz") || archivePath.endsWith(".tgz") || archivePath.endsWith(".bz2")) {
-            archivePath = decompress(archivePath);
-            extractTar(archivePath, outputFolder);
+            archivePath = decompress(archivePath, outputDirectory);
+            extractTar(archivePath, outputDirectory);
         } else if (archivePath.endsWith(".rpm")) {
-            archivePath = rpm2cpio(archivePath);
-            extractCpio(archivePath, outputFolder);
+            archivePath = rpm2cpio(archivePath, outputDirectory);
+            extractCpio(archivePath, outputDirectory);
         } else if (archivePath.endsWith(".cpio")) {
-            extractCpio(archivePath, outputFolder);
+            extractCpio(archivePath, outputDirectory);
         } else if (archivePath.endsWith(".zip")) {
-            extractZip(archivePath, outputFolder);
+            extractZip(archivePath, outputDirectory);
         } else {
-            throw new IOException("Unsupported archive type: " + archivePath);
+            throw new RunBuildException("Unsupported archive type: " + archivePath);
         }
     }
 
     /**
-     * @param archivePath
+     * Decompress a compressed archive (e.g. .tar.gz -> .tar).
      *
-     * @return
-     * @throws ArchiveException
-     * @throws IOException
-     * @throws CompressorException
+     * @param archivePath     the path to the archive file.
+     * @param outputDirectory the decompression target directory.
+     *
+     * @return the path to the decompressed archive.
+     * @throws RunBuildException to break the build.
      */
-    public String decompress(String archivePath)
-            throws ArchiveException, IOException, CompressorException {
-
+    public String decompress(String archivePath, String outputDirectory) throws RunBuildException {
         Loggers.AGENT.debug("Decompressing: " + archivePath);
-        String tarPath = FilenameUtils.removeExtension(archivePath);
+        String tarPath = new File(outputDirectory, new File(FilenameUtils.removeExtension(archivePath))
+                .getName()).getAbsolutePath();
 
-        final BufferedInputStream is = new BufferedInputStream(new FileInputStream(archivePath));
-        CompressorInputStream in = new CompressorStreamFactory().createCompressorInputStream(is);
-        org.apache.commons.compress.utils.IOUtils.copy(in, new FileOutputStream(tarPath));
-        in.close();
+        try {
+            CompressorInputStream in = new CompressorStreamFactory()
+                    .createCompressorInputStream(new BufferedInputStream(new FileInputStream(archivePath)));
+            IOUtils.copy(in, new FileOutputStream(tarPath));
+            in.close();
+        } catch (Exception e) {
+            throw new RunBuildException("Failed to decompress archive", e);
+        }
 
         return tarPath;
     }
 
     /**
-     * @param archivePath
+     * Convert an RPM to a cpio archive suitable for extraction.
      *
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
+     * @param archivePath     the path to the archive file.
+     * @param outputDirectory the decompression target directory.
+     *
+     * @return the path to the converted archive.
+     * @throws RunBuildException to break the build.
      */
-    public String rpm2cpio(String archivePath) throws IOException, InterruptedException {
+    public String rpm2cpio(String archivePath, String outputDirectory) throws RunBuildException {
         Loggers.AGENT.debug("Converting to cpio: " + archivePath);
-        String cpioPath = FilenameUtils.removeExtension(archivePath) + ".cpio";
+        String cpioPath = new File(outputDirectory, new File(FilenameUtils.removeExtension(archivePath) + ".cpio")
+                .getName()).getAbsolutePath();
+
         String[] rpm2cpioCommand = {
                 "/bin/sh",
                 "-c",
                 "/usr/bin/rpm2cpio " + archivePath + " > " + cpioPath};
-        SystemCommandResult result = IOUtil.runSystemCommand(rpm2cpioCommand);
-        Loggers.AGENT.debug("rpm2cpio returned with code " + result.getReturnCode());
+
+        SystemCommandResult result;
+        try {
+            result = IOUtil.runSystemCommand(rpm2cpioCommand);
+        } catch (Exception e) {
+            throw new RunBuildException("Failed to convert rpm to cpio", e);
+        }
+
+        if (result.getReturnCode() != 0) {
+            throw new RunBuildException("Failed to convert rpm to cpio: " + result.getOutput());
+        }
+
         return cpioPath;
     }
 
     /**
+     * Extract the specified cpio archive to the specified output directory.
+     * <p/>
      * <ugly_hack>The cpio command doesn't allow you to specify an output directory, and running commands with
      * ProcessBuilder in different directories is a pain, so we write a small script to a file and execute that
      * instead.</ugly_hack>
      *
-     * @param archivePath
-     * @param outputFolder
+     * @param archivePath  the path to the archive file.
+     * @param outputFolder the extraction target directory.
      *
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws RunBuildException to break the build.
      */
-    public void extractCpio(String archivePath, String outputFolder)
-            throws IOException, InterruptedException, RunBuildException {
-
+    public void extractCpio(String archivePath, String outputFolder) throws RunBuildException {
         String command = "#!/bin/sh\n" +
                 "cd %working_directory%\n" +
                 "cpio -idmv < %cpio_file%\n";
 
         command = command.replace("%cpio_file%", archivePath);
         command = command.replace("%working_directory%", outputFolder);
-        IOUtil.writeFile("extract-cpio.sh", command);
-        new File("extract-cpio.sh").setExecutable(true);
+        try {
+            IOUtil.writeFile("extract-cpio.sh", command);
+        } catch (IOException e) {
+            throw new RunBuildException("Failed to write intermediate cpio extraction script", e);
+        }
 
-        SystemCommandResult result = IOUtil.runSystemCommand(new String[]{"./extract-cpio.sh", command});
+        new File("extract-cpio.sh").setExecutable(true);
+        SystemCommandResult result;
+
+        try {
+            result = IOUtil.runSystemCommand(new String[]{"./extract-cpio.sh", command});
+        } catch (Exception e) {
+            throw new RunBuildException("Failed to extract cpio", e);
+        }
+
         if (result.getReturnCode() != 0) {
             throw new RunBuildException("Failed to extract cpio: " + result.getOutput());
         }
     }
 
     /**
-     * @param archivePath
-     * @param outputFolder
+     * Extract the specified tar archive to the specified output directory.
      *
-     * @throws IOException
-     * @throws InterruptedException
+     * @param archivePath  the path to the archive file.
+     * @param outputFolder the extraction target directory.
+     *
+     * @throws RunBuildException to break the build.
      */
-    public void extractTar(String archivePath, String outputFolder)
-            throws IOException, InterruptedException, RunBuildException {
+    public void extractTar(String archivePath, String outputFolder) throws RunBuildException {
         String[] command = {"tar", "-xf", archivePath, "-C", outputFolder};
-        SystemCommandResult result = IOUtil.runSystemCommand(command);
+        SystemCommandResult result;
+
+        try {
+            result = IOUtil.runSystemCommand(command);
+        } catch (Exception e) {
+            throw new RunBuildException("Failed to extract tar", e);
+        }
+
         if (result.getReturnCode() != 0) {
             throw new RunBuildException("Failed to extract tar: " + result.getOutput());
         }
     }
 
     /**
-     * @param archivePath
-     * @param outputFolder
+     * Extract the specified zip archive to the specified output directory.
      *
-     * @throws IOException
-     * @throws InterruptedException
+     * @param archivePath  the path to the archive file.
+     * @param outputFolder the extraction target directory.
+     *
+     * @throws RunBuildException to break the build.
      */
-    public void extractZip(String archivePath, String outputFolder)
-            throws IOException, InterruptedException, RunBuildException {
+    public void extractZip(String archivePath, String outputFolder) throws RunBuildException {
         String[] command = {"unzip", archivePath, "-d", outputFolder};
-        SystemCommandResult result = IOUtil.runSystemCommand(command);
+        SystemCommandResult result;
+
+        try {
+            result = IOUtil.runSystemCommand(command);
+        } catch (Exception e) {
+            throw new RunBuildException("Failed to extract zip", e);
+        }
+
         if (result.getReturnCode() != 0) {
             throw new RunBuildException("Failed to extract zip: " + result.getOutput());
         }
     }
-
 }

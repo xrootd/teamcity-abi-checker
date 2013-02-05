@@ -24,30 +24,42 @@ import jetbrains.buildServer.agent.BuildProgressLogger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *
+ * Simple logging class to wrap around a BuildProgressLogger.
  */
-public class SimpleLogger implements Logger {
+public class SimpleLogger {
     @NotNull
     private final BuildProgressLogger logger;
 
     /**
-     * @param buildLogger
+     * @param buildLogger the BuildProgressLogger to wrap.
      */
     public SimpleLogger(@NotNull final BuildProgressLogger buildLogger) {
         logger = buildLogger;
     }
 
-    @Override
+    /**
+     * Log an informational message to the TeamCity build log.
+     *
+     * @param message the message to log.
+     */
     public void message(@NotNull final String message) {
         logger.message(message);
     }
 
-    @Override
+    /**
+     * Log an error message to the TeamCity build log.
+     *
+     * @param message the message to log.
+     */
     public void error(@NotNull final String message) {
         logger.error(message);
     }
 
-    @Override
+    /**
+     * Log a warning message to the TeamCity build log.
+     *
+     * @param message the message to log.
+     */
     public void warning(@NotNull final String message) {
         logger.warning(message);
     }

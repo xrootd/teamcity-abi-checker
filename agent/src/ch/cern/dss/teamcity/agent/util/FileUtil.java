@@ -30,15 +30,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A set useful methods for operating on files.
+ */
 public class FileUtil {
 
     /**
-     * @param searchDirectory
-     * @param filePattern
+     * Find files in the given directory, based upon the specified Ant-like wildcard string.
      *
-     * @return
-     * @throws jetbrains.buildServer.RunBuildException
+     * @param searchDirectory the directory to look for files.
+     * @param filePattern     the Ant-like wildcard pattern.
      *
+     * @return list of absolute paths to the files that were found.
+     * @throws RunBuildException to break the build.
      */
     public static List<String> findFiles(String searchDirectory, String filePattern) throws RunBuildException {
         List<String> matchedFiles;
@@ -55,19 +59,19 @@ public class FileUtil {
     }
 
     /**
-     * Returns *absolute* path
+     * Find files in the given directory, based upon the specified Ant-like wildcard string.
      *
-     * @param filePath
-     * @param fileString
+     * @param searchDirectory the directory to look for files.
+     * @param filePattern     the Ant-like wildcard pattern.
      *
-     * @return
-     * @throws IOException
+     * @return list of absolute paths to the files that were found.
+     * @throws RunBuildException to break the build.
      */
-    private static List<String> matchFiles(String filePath, String fileString) throws IOException {
-        final AntPatternFileFinder finder = new AntPatternFileFinder(splitFileWildcards(fileString),
+    private static List<String> matchFiles(String searchDirectory, String filePattern) throws IOException {
+        final AntPatternFileFinder finder = new AntPatternFileFinder(splitFileWildcards(filePattern),
                 new String[]{},
                 SystemInfo.isFileSystemCaseSensitive);
-        final File[] files = finder.findFiles(new File(filePath));
+        final File[] files = finder.findFiles(new File(searchDirectory));
 
         final List<String> result = new ArrayList<String>(files.length);
         for (File file : files) {
@@ -78,9 +82,11 @@ public class FileUtil {
     }
 
     /**
-     * @param string
+     * Split a string of files on their wildcards.
      *
-     * @return
+     * @param string the file pattern string to split.
+     *
+     * @return array of split string pieces.
      */
     private static String[] splitFileWildcards(final String string) {
         if (string != null) {
@@ -88,7 +94,6 @@ public class FileUtil {
             final List<String> split = StringUtil.splitCommandArgumentsAndUnquote(filesStringWithSpaces);
             return split.toArray(new String[split.size()]);
         }
-
         return new String[0];
     }
 }

@@ -24,7 +24,6 @@ import ch.cern.dss.teamcity.agent.util.FileUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,13 +32,15 @@ import java.util.Map;
 import java.util.Vector;
 
 /**
- *
+ * Class to build command-line parameters when running in normal build mode.
  */
-public class NormalModeCommandLine extends AbiCheckerCommandLine implements ProgramCommandLine {
+public class NormalModeCommandLine extends AbiCheckerCommandLine {
 
     /**
-     * @param context
-     * @param logger
+     * @param context the context parameters object.
+     * @param logger  the build progress logger to use.
+     *
+     * @throws RunBuildException to break the build.
      */
     public NormalModeCommandLine(AbiCheckerContext context, SimpleLogger logger) throws RunBuildException {
         super(context, logger);
@@ -65,8 +66,8 @@ public class NormalModeCommandLine extends AbiCheckerCommandLine implements Prog
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * @return the path to the executable to run in this mode.
+     * @throws RunBuildException to break the build.
      */
     @NotNull
     public String getExecutablePath() throws RunBuildException {
@@ -74,16 +75,16 @@ public class NormalModeCommandLine extends AbiCheckerCommandLine implements Prog
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * @return the directory to work in in this mode.
+     * @throws RunBuildException to break the build.
      */
     public String getWorkingDirectory() throws RunBuildException {
         return context.getWorkingDirectory().getAbsolutePath();
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * @return the command-line arguments to use for this mode.
+     * @throws RunBuildException to break the build.
      */
     @NotNull
     public List<String> getArguments() throws RunBuildException {
@@ -119,8 +120,8 @@ public class NormalModeCommandLine extends AbiCheckerCommandLine implements Prog
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * @return the map of environment variables to use in this mode.
+     * @throws RunBuildException to break the build.
      */
     @NotNull
     @Override

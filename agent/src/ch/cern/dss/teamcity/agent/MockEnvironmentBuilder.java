@@ -40,8 +40,8 @@ public class MockEnvironmentBuilder {
     private List<String> chroots;
 
     /**
-     * @param metaDirectory
-     * @param logger
+     * @param metaDirectory the directory that contains the mock metadata file.
+     * @param logger        the build progress logger to use.
      */
     public MockEnvironmentBuilder(File metaDirectory, SimpleLogger logger) {
         this.logger = logger;
@@ -49,7 +49,30 @@ public class MockEnvironmentBuilder {
     }
 
     /**
+     * Parse a list of chroots to use from the specified metadata file.
      *
+     * @param metaFile the metadata file that contains the chroot definitions.
+     *
+     * @return a list of chroots to use.
+     * @throws RunBuildException to break the build.
+     */
+    private static List<String> parseChroots(File metaFile) throws RunBuildException {
+        String metaFileContents;
+        try {
+            metaFileContents = IOUtil.readFile(metaFile.getAbsolutePath());
+        } catch (IOException e) {
+            throw new RunBuildException("Unable to parse chroot metadata", e);
+        }
+
+        if (!metaFileContents.startsWith("chroots=")) {
+            throw new RunBuildException("Unable to parse chroot metadata: invalid file format");
+        }
+
+        return StringUtil.split(StringUtil.split(metaFileContents, "=").get(1), ",");
+    }
+
+    /**
+     * Initialize the mock environment.
      */
     public void setup() throws RunBuildException {
 //        if (!checkMockUser()) {
@@ -73,20 +96,22 @@ public class MockEnvironmentBuilder {
 
         // Verify that the chroot environments are initialized.
         for (String chroot : chroots) {
-            File chrootDirectory = new File(AbiCheckerConstants.MOCK_CHROOT_DIRECTORY, chroot);
-            if (!chrootDirectory.exists()) {
-                initializeChrootEnvironment(chrootDirectory);
+            File chrootConfig = new File(AbiCheckerConstants.MOCK_CHROOT_DIRECTORY, chroot);
+            if (!chrootConfig.exists()) {
+                initializeChrootEnvironment(chrootConfig);
             }
         }
 
     }
 
     /**
-     * @param chrootDirectory
+     * Initialize an individual chroot environment with mock.
+     *
+     * @param chrootConfig the path to the mock config file to use for this chroot.
      */
-    private void initializeChrootEnvironment(File chrootDirectory) throws RunBuildException {
-        logger.message("Initializing mock environment: " + chrootDirectory.getAbsolutePath());
-        String[] command = {AbiCheckerConstants.MOCK_EXECUTABLE, "--init", "-r", chrootDirectory.getAbsolutePath()};
+    private void initializeChrootEnvironment(File chrootConfig) throws RunBuildException {
+        logger.message("Initializing mock environment: " + chrootConfig.getAbsolutePath());
+        String[] command = {AbiCheckerConstants.MOCK_EXECUTABLE, "--init", "-r", chrootConfig.getAbsolutePath()};
         SystemCommandResult result;
 
         try {
@@ -98,27 +123,6 @@ public class MockEnvironmentBuilder {
         if (result.getReturnCode() != 0) {
             throw new RunBuildException("Unable to initialize mock environment: " + result.getOutput());
         }
-    }
-
-    /**
-     * @param metaFile
-     *
-     * @return
-     * @throws IOException
-     */
-    private static List<String> parseChroots(File metaFile) throws RunBuildException {
-        String metaFileContents;
-        try {
-            metaFileContents = IOUtil.readFile(metaFile.getAbsolutePath());
-        } catch (IOException e) {
-            throw new RunBuildException("Unable to parse chroot metadata", e);
-        }
-
-        if (!metaFileContents.startsWith("chroots=")) {
-            throw new RunBuildException("Unable to parse chroot metadata: invalid file format");
-        }
-
-        return StringUtil.split(StringUtil.split(metaFileContents, "=").get(1), ",");
     }
 
     /**
@@ -149,14 +153,14 @@ public class MockEnvironmentBuilder {
     }
 
     /**
-     * @return
+     * @return the list of chroot names to be used.
      */
     public List<String> getChroots() {
         return chroots;
     }
 
     /**
-     * @param chroots
+     * @param chroots the chroots to be set.
      */
     public void setChroots(List<String> chroots) {
         this.chroots = chroots;

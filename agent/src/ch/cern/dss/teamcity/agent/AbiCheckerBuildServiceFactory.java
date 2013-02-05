@@ -28,12 +28,15 @@ import jetbrains.buildServer.agent.runner.CommandLineBuildServiceFactory;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *
+ * Factory class to create AbiCheckerBuildService objects. Also implements AgentBuildRunnerInfo to avoid the need for
+ * another class for this.
  */
 public class AbiCheckerBuildServiceFactory implements CommandLineBuildServiceFactory, AgentBuildRunnerInfo {
 
     /**
-     * @return
+     * Factory method to create a build service.
+     *
+     * @return new instance of AbiCheckerBuildService.
      */
     @NotNull
     @Override
@@ -42,7 +45,7 @@ public class AbiCheckerBuildServiceFactory implements CommandLineBuildServiceFac
     }
 
     /**
-     * @return
+     * @return ourselves, we implement the interface here.
      */
     @NotNull
     @Override
@@ -51,7 +54,7 @@ public class AbiCheckerBuildServiceFactory implements CommandLineBuildServiceFac
     }
 
     /**
-     * @return
+     * @return the unique type of this agent plugin.
      */
     @NotNull
     @Override
@@ -60,14 +63,14 @@ public class AbiCheckerBuildServiceFactory implements CommandLineBuildServiceFac
     }
 
     /**
+     * Perform checks to determine whether this build stage can be run on this agent.
+     *
      * @param buildAgentConfiguration
      *
-     * @return
+     * @return false if the agent cannot run this stage, true otherwise.
      */
     @Override
     public boolean canRun(@NotNull BuildAgentConfiguration buildAgentConfiguration) {
-
-        // Check for existence of rpm2cpio
         return true;
     }
 }

@@ -32,41 +32,67 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Acts as an entry point for the two modes of operation of this plugin (normal and mock).
+ */
 public abstract class AbiCheckerCommandLine implements ProgramCommandLine {
 
     protected final SimpleLogger logger;
     protected final AbiCheckerContext context;
 
+    /**
+     * @param context the context object which holds useful parameters.
+     * @param logger  the build progress logger that we should use.
+     */
     public AbiCheckerCommandLine(AbiCheckerContext context, SimpleLogger logger) {
         this.context = context;
         this.logger = logger;
     }
 
+    /**
+     * @return the path to the executable to run in this mode.
+     * @throws RunBuildException to break the build.
+     */
     @NotNull
     @Override
     public abstract String getExecutablePath() throws RunBuildException;
 
+    /**
+     * @return the directory to work in in this mode.
+     * @throws RunBuildException to break the build.
+     */
     @NotNull
     @Override
     public abstract String getWorkingDirectory() throws RunBuildException;
 
+    /**
+     * @return the command-line arguments to use for this mode.
+     * @throws RunBuildException to break the build.
+     */
     @NotNull
     @Override
     public abstract List<String> getArguments() throws RunBuildException;
 
+    /**
+     * @return the map of environment variables to use in this mode.
+     * @throws RunBuildException to break the build.
+     */
     @NotNull
     @Override
     public abstract Map<String, String> getEnvironment() throws RunBuildException;
 
     /**
-     * @param filename
-     * @param version
-     * @param headers
-     * @param libs
-     * @param gccOptions
+     * Create an XML descriptor suitable for use with the abi-compliance-checker program based upon the specified
+     * values.
      *
-     * @return
-     * @throws RunBuildException
+     * @param filename   the absolute filename of the XML descriptor to be created.
+     * @param version    the version identifier for this descriptor.
+     * @param headers    the list of header files to be checked.
+     * @param libs       the list of shared libraries to be checked/
+     * @param gccOptions the list of additional GCC options to be applied.
+     *
+     * @return the newly written XML descriptor file object.
+     * @throws RunBuildException to break the build.
      */
     protected File writeXmlDescriptor(String filename, String version, List<String> headers, List<String> libs,
                                       String gccOptions) throws RunBuildException {

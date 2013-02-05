@@ -42,7 +42,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Provides an context in which to execute the abi-compatibility-checker program and associated command line
+ * Provides an context in which to execute the abi-compliance-checker program and associated command line
  * arguments. Also supports setting up mock environments and checking compatibility inside them, depending upon
  * runner parameters.
  */
@@ -119,15 +119,18 @@ public class AbiCheckerBuildService extends BuildServiceAdapter {
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * This method is called just before this build stage is executed. Here, we build the command line arguments that
+     * will be run, based upon the user parameters that we have.
+     *
+     * @return the actual ProgramCommandLine object that will be run as this build stage.
+     * @throws RunBuildException to break the build.
      */
     @NotNull
     @Override
     public ProgramCommandLine makeProgramCommandLine() throws RunBuildException {
-        // Build the arguments, depending on the mode
         ProgramCommandLine commandLine;
 
+        // Build the arguments, depending on the mode
         if (context.getBuildMode().equals(AbiCheckerConstants.BUILD_MODE_NORMAL)) {
             commandLine = new NormalModeCommandLine(context, logger);
         } else if (context.getBuildMode().equals(AbiCheckerConstants.BUILD_MODE_MOCK)) {

@@ -25,7 +25,6 @@ import ch.cern.dss.teamcity.agent.util.SimpleLogger;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import ch.cern.dss.teamcity.common.IOUtil;
 import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.util.StringUtil;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -37,17 +36,17 @@ import java.util.Map;
 import java.util.Vector;
 
 /**
- *
+ * Class to build command-line parameters when running in mock build mode.
  */
-public class MockModeCommandLine extends AbiCheckerCommandLine implements ProgramCommandLine {
+public class MockModeCommandLine extends AbiCheckerCommandLine {
 
     private final MockEnvironmentBuilder mockEnvironmentBuilder;
 
     /**
-     * @param context
-     * @param logger
+     * @param context the context parameters object.
+     * @param logger  the build progress logger to use.
      *
-     * @throws RunBuildException
+     * @throws RunBuildException to break the build.
      */
     public MockModeCommandLine(AbiCheckerContext context, SimpleLogger logger) throws RunBuildException {
         super(context, logger);
@@ -87,8 +86,8 @@ public class MockModeCommandLine extends AbiCheckerCommandLine implements Progra
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * @return the path to the executable to run in this mode.
+     * @throws RunBuildException to break the build.
      */
     @NotNull
     @Override
@@ -97,8 +96,8 @@ public class MockModeCommandLine extends AbiCheckerCommandLine implements Progra
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * @return the directory to work in in this mode.
+     * @throws RunBuildException to break the build.
      */
     @NotNull
     @Override
@@ -107,8 +106,8 @@ public class MockModeCommandLine extends AbiCheckerCommandLine implements Progra
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * @return the command-line arguments to use for this mode.
+     * @throws RunBuildException to break the build.
      */
     @NotNull
     @Override
@@ -191,8 +190,8 @@ public class MockModeCommandLine extends AbiCheckerCommandLine implements Progra
     }
 
     /**
-     * @return
-     * @throws RunBuildException
+     * @return the map of environment variables to use in this mode.
+     * @throws RunBuildException to break the build.
      */
     @NotNull
     @Override

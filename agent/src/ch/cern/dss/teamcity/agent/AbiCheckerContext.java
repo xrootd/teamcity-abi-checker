@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Useful context class to retrieve parameters, configurations etc.
+ */
 public class AbiCheckerContext {
 
     private final Map<String, String> runnerParameters;

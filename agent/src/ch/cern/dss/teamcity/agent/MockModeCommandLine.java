@@ -71,7 +71,7 @@ public class MockModeCommandLine extends AbiCheckerCommandLine implements Progra
             List<String> matchedNewHeaderFiles = FileUtil.findFiles(
                     context.getNewExtractedArtifactsDirectory() + "/" + chroot, context.getHeaderFilePattern());
             List<String> matchedNewLibraryFiles = FileUtil.findFiles(
-                     context.getNewExtractedArtifactsDirectory() + "/" + chroot, context.getLibraryFilePattern());
+                    context.getNewExtractedArtifactsDirectory() + "/" + chroot, context.getLibraryFilePattern());
 
             // Write the XML files
             writeXmlDescriptor(context.getReferenceXmlFilename(chroot), context.getReferenceXmlVersion(),

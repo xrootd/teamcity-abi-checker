@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  *
  */
-public class SimpleLogger extends LoggerAdapter {
+public class SimpleLogger implements Logger {
     @NotNull
     private final BuildProgressLogger logger;
 
@@ -48,15 +48,5 @@ public class SimpleLogger extends LoggerAdapter {
     @Override
     public void warning(@NotNull final String message) {
         logger.warning(message);
-    }
-
-    @Override
-    public void blockStart(@NotNull final String name) {
-        logger.targetStarted(name);
-    }
-
-    @Override
-    public void blockFinish(@NotNull final String name) {
-        logger.targetFinished(name);
     }
 }

@@ -18,6 +18,7 @@ public class FileUtil {
      *
      * @return
      * @throws jetbrains.buildServer.RunBuildException
+     *
      */
     public static List<String> findFiles(String searchDirectory, String filePattern) throws RunBuildException {
         List<String> matchedFiles;

@@ -47,6 +47,7 @@ public class ArchiveExtractor {
     /**
      * @param archivePath
      * @param outputFolder
+     *
      * @throws CompressorException
      * @throws ArchiveException
      * @throws IOException
@@ -83,6 +84,7 @@ public class ArchiveExtractor {
 
     /**
      * @param archivePath
+     *
      * @return
      * @throws ArchiveException
      * @throws IOException
@@ -104,6 +106,7 @@ public class ArchiveExtractor {
 
     /**
      * @param archivePath
+     *
      * @return
      * @throws IOException
      * @throws InterruptedException
@@ -127,6 +130,7 @@ public class ArchiveExtractor {
      *
      * @param archivePath
      * @param outputFolder
+     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -151,6 +155,7 @@ public class ArchiveExtractor {
     /**
      * @param archivePath
      * @param outputFolder
+     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -166,6 +171,7 @@ public class ArchiveExtractor {
     /**
      * @param archivePath
      * @param outputFolder
+     *
      * @throws IOException
      * @throws InterruptedException
      */

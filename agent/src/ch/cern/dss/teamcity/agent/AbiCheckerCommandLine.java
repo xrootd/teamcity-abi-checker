@@ -49,7 +49,7 @@ public abstract class AbiCheckerCommandLine implements ProgramCommandLine {
      * @throws RunBuildException
      */
     protected File writeXmlDescriptor(String filename, String version, List<String> headers, List<String> libs,
-                                    String gccOptions) throws RunBuildException {
+                                      String gccOptions) throws RunBuildException {
         String descriptor = "" +
                 "<version>" + version + "</version>" +
                 "<headers>" + StringUtil.join(headers, "\n") + "</headers>" +

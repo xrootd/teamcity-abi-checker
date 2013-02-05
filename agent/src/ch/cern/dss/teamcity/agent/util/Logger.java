@@ -40,14 +40,4 @@ public interface Logger {
      */
     void warning(@NotNull String message);
 
-    /**
-     * @param name
-     */
-    void blockStart(@NotNull String name);
-
-    /**
-     * @param name
-     */
-    void blockFinish(@NotNull String name);
-
 }

@@ -18,10 +18,10 @@
 
 package ch.cern.dss.teamcity.agent;
 
-import ch.cern.dss.teamcity.common.IOUtil;
 import ch.cern.dss.teamcity.agent.util.SimpleLogger;
-import ch.cern.dss.teamcity.common.SystemCommandResult;
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
+import ch.cern.dss.teamcity.common.IOUtil;
+import ch.cern.dss.teamcity.common.SystemCommandResult;
 import com.intellij.openapi.util.text.StringUtil;
 import com.sun.security.auth.UnixNumericGroupPrincipal;
 import com.sun.security.auth.module.UnixSystem;

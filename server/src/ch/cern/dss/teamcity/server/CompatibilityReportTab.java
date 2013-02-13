@@ -123,6 +123,8 @@ public class CompatibilityReportTab extends ViewLogTab {
     @Override
     protected boolean isAvailable(@NotNull HttpServletRequest request, @NotNull SBuild build) {
         SBuildRunnerDescriptor descriptor = build.getBuildType().findBuildRunnerByType(AbiCheckerConstants.TYPE);
+        if (descriptor == null) return false;
+
         Map<String, String> runnerParameters = descriptor.getParameters();
 
         if (runnerParameters.get(AbiCheckerConstants.BUILD_MODE).equals(AbiCheckerConstants.BUILD_MODE_NORMAL)) {

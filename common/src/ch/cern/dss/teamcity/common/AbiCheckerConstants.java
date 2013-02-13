@@ -48,6 +48,6 @@ public interface AbiCheckerConstants {
     String MOCK_CONFIG_DIRECTORY = "/etc/mock";
     String MOCK_CHROOT_DIRECTORY = "/var/lib/mock";
     String MOCK_GROUP = "mock";
-    String MOCK_META_DIRECTORY = "meta";
-    String MOCK_META_FILE = "mock";
+    String MOCK_META_DIRECTORY = "mock";
+    String MOCK_META_FILE = "manifest";
 }

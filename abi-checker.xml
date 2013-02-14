@@ -65,6 +65,7 @@
     <include name="**/?*.htm"/>
     <include name="**/?*.jsp"/>
     <include name="**/?*.js"/>
+    <include name="**/?*.css"/>
   </patternset>
 
 

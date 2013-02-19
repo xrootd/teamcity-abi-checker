@@ -1,9 +1,9 @@
 %global plugindir   /var/teamcity/.BuildServer/plugins
 
 Summary:        TeamCity plugin for building checking ABI compatibility with previous builds
-Name:           abi-checker-teamcity
-Version:        0.1
-Release:        1%{?dist}
+Name:           teamcity-abi-checker
+Version:        0.2
+Release:        1.tc7%{?dist}
 Group:          Development/Tools/Other
 Source:         %{name}-%{version}.tar.gz
 License:        GPL3

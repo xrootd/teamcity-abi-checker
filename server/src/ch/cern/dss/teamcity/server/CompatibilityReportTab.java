@@ -137,7 +137,6 @@ public class CompatibilityReportTab extends ViewLogTab {
             try {
                 Map<String, Map.Entry<String, String>> mockReportPages = getMockReportPages(build);
                 if (mockReportPages == null || mockReportPages.isEmpty()) {
-                    Loggers.SERVER.error(">>>>>> report pages map null or empty");
                     return false;
                 }
 
@@ -147,7 +146,6 @@ public class CompatibilityReportTab extends ViewLogTab {
                             ||
                             !ReportTabUtil.isAvailable(build,
                                     chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT)) {
-                        Loggers.SERVER.error(">>>>>> report pages not available");
                         return false;
                     }
                 }
@@ -175,7 +173,6 @@ public class CompatibilityReportTab extends ViewLogTab {
 
         // Grab the chroots
         List<String> chroots = getChroots(build.getArtifactsDirectory());
-        Loggers.SERVER.info(">>>>> chroots: " + Arrays.toString(chroots.toArray()));
 
         // Check if we have a folder with the chroot name and the report file is inside
         for (String chroot : chroots) {
@@ -184,7 +181,6 @@ public class CompatibilityReportTab extends ViewLogTab {
             File srcReportPage = new File(build.getArtifactsDirectory(),
                     chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT);
             if (abiReportPage.exists() && srcReportPage.exists()) {
-                Loggers.SERVER.info("+++++ pages exist for " + chroot);
 
                 Map.Entry<String, String> pages = new AbstractMap.SimpleEntry<String, String>
                         (IOUtil.readFile(abiReportPage.getAbsolutePath()),
@@ -211,9 +207,8 @@ public class CompatibilityReportTab extends ViewLogTab {
         if (artifacts != null && artifacts.length > 0) {
 
             for (File file : artifacts) {
-                Loggers.SERVER.info(">>>>> artifact: " + file.getAbsolutePath());
+
                 if (file.isDirectory()) {
-                    Loggers.SERVER.info(">>>>> directory: " + file.getAbsolutePath());
                     File[] manifestFile = file.listFiles(new FilenameFilter() {
                         @Override
                         public boolean accept(File directory, String name) {
@@ -222,8 +217,6 @@ public class CompatibilityReportTab extends ViewLogTab {
                     });
 
                     if (manifestFile != null && manifestFile.length == 1) {
-
-                        Loggers.SERVER.info(">>>>> found: " + manifestFile[0]);
 
                         String manifestFileContents = "";
                         try {

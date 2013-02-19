@@ -22,7 +22,7 @@ package ch.cern.dss.teamcity.server;
 
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import ch.cern.dss.teamcity.common.IOUtil;
-import com.intellij.openapi.util.text.StringUtil;
+import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildRunnerDescriptor;

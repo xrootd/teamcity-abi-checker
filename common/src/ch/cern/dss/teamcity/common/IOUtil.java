@@ -41,17 +41,18 @@ public class IOUtil {
      * @throws IOException
      */
     public static SystemCommandResult runSystemCommand(String[] command) throws InterruptedException, IOException {
+        ProcessBuilder builder = new ProcessBuilder(command);
+        builder.redirectErrorStream(true);
+        Process process = builder.start();
 
-        Process process = Runtime.getRuntime().exec(command);
         BufferedReader reader = new BufferedReader(
-                new InputStreamReader(
-                        new BufferedInputStream(process.getInputStream())));
+                new InputStreamReader(new BufferedInputStream(process.getInputStream())));
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder stringBuilder = new StringBuilder();
 
         String line;
         while ((line = reader.readLine()) != null) {
-            buffer.append(line);
+            stringBuilder.append(line).append("\n");
         }
 
         try {
@@ -60,7 +61,7 @@ public class IOUtil {
             reader.close();
         }
 
-        return new SystemCommandResult(process.exitValue(), buffer.toString());
+        return new SystemCommandResult(process.exitValue(), stringBuilder.toString());
     }
 
     /**

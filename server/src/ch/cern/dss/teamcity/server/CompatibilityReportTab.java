@@ -22,7 +22,8 @@ package ch.cern.dss.teamcity.server;
 
 import ch.cern.dss.teamcity.common.AbiCheckerConstants;
 import ch.cern.dss.teamcity.common.IOUtil;
-import jetbrains.buildServer.util.StringUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.log.Loggers;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildRunnerDescriptor;
@@ -36,11 +37,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CompatibilityReportTab extends ViewLogTab {
 
@@ -138,6 +137,7 @@ public class CompatibilityReportTab extends ViewLogTab {
             try {
                 Map<String, Map.Entry<String, String>> mockReportPages = getMockReportPages(build);
                 if (mockReportPages == null || mockReportPages.isEmpty()) {
+                    Loggers.SERVER.error(">>>>>> report pages map null or empty");
                     return false;
                 }
 
@@ -147,6 +147,7 @@ public class CompatibilityReportTab extends ViewLogTab {
                             ||
                             !ReportTabUtil.isAvailable(build,
                                     chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT)) {
+                        Loggers.SERVER.error(">>>>>> report pages not available");
                         return false;
                     }
                 }
@@ -172,23 +173,9 @@ public class CompatibilityReportTab extends ViewLogTab {
     private Map<String, Map.Entry<String, String>> getMockReportPages(SBuild build) throws IOException {
         Map<String, Map.Entry<String, String>> reportPages = new HashMap<String, Map.Entry<String, String>>();
 
-        // Find the meta directory
-        File mockMetaDirectory = new File(build.getArtifactsDirectory(), AbiCheckerConstants.MOCK_META_DIRECTORY);
-        if (!mockMetaDirectory.exists() || !mockMetaDirectory.isDirectory()) {
-            return null;
-        }
-
-        // Grab the chroot names
-        File metaFile = new File(mockMetaDirectory, AbiCheckerConstants.MOCK_META_FILE);
-        if (!metaFile.exists() || !metaFile.isFile()) {
-            return null;
-        }
-
-        // Parse and verify the chroots
-        List<String> chroots;
-        if ((chroots = parseChroots(metaFile)) == null) {
-            return null;
-        }
+        // Grab the chroots
+        List<String> chroots = getChroots(build.getArtifactsDirectory());
+        Loggers.SERVER.info(">>>>> chroots: " + Arrays.toString(chroots.toArray()));
 
         // Check if we have a folder with the chroot name and the report file is inside
         for (String chroot : chroots) {
@@ -197,6 +184,8 @@ public class CompatibilityReportTab extends ViewLogTab {
             File srcReportPage = new File(build.getArtifactsDirectory(),
                     chroot + AbiCheckerConstants.REPORT_DIRECTORY + AbiCheckerConstants.SRC_REPORT);
             if (abiReportPage.exists() && srcReportPage.exists()) {
+                Loggers.SERVER.info("+++++ pages exist for " + chroot);
+
                 Map.Entry<String, String> pages = new AbstractMap.SimpleEntry<String, String>
                         (IOUtil.readFile(abiReportPage.getAbsolutePath()),
                                 IOUtil.readFile(srcReportPage.getAbsolutePath()));
@@ -208,25 +197,56 @@ public class CompatibilityReportTab extends ViewLogTab {
     }
 
     /**
-     * Parse a list of chroots to use from the specified metadata file.
+     * Parse a list of chroots to use by finding the manifest files in the artifacts.
      *
-     * @param metaFile the metadata file that contains the chroot definitions.
+     * @param artifactsDirectory
      *
      * @return a list of chroots to use.
      */
-    @Nullable
-    private List<String> parseChroots(File metaFile) {
-        String metaFileContents;
-        try {
-            metaFileContents = IOUtil.readFile(metaFile.getAbsolutePath());
-        } catch (IOException e) {
-            return null;
+    private List<String> getChroots(File artifactsDirectory) {
+
+        List<String> chroots = new ArrayList<String>();
+        File[] artifacts = artifactsDirectory.listFiles();
+
+        if (artifacts != null && artifacts.length > 0) {
+
+            for (File file : artifacts) {
+                Loggers.SERVER.info(">>>>> artifact: " + file.getAbsolutePath());
+                if (file.isDirectory()) {
+                    Loggers.SERVER.info(">>>>> directory: " + file.getAbsolutePath());
+                    File[] manifestFile = file.listFiles(new FilenameFilter() {
+                        @Override
+                        public boolean accept(File directory, String name) {
+                            return name.equals(AbiCheckerConstants.MOCK_META_FILE);
+                        }
+                    });
+
+                    if (manifestFile != null && manifestFile.length == 1) {
+
+                        Loggers.SERVER.info(">>>>> found: " + manifestFile[0]);
+
+                        String manifestFileContents = "";
+                        try {
+                            manifestFileContents = IOUtil.readFile(manifestFile[0].getAbsolutePath());
+                        } catch (IOException e) {
+                            Loggers.SERVER.error("Unable to read manifest file: " + manifestFile[0].getAbsolutePath());
+                        }
+
+                        if (!manifestFileContents.startsWith("chroot=")) {
+                            Loggers.SERVER.error("Unable to parse manifest file: invalid file format: "
+                                    + manifestFileContents);
+                        }
+
+                        chroots.add(StringUtil.split(manifestFileContents, "=").get(1));
+                    }
+                }
+            }
+
+        } else {
+            Loggers.SERVER.error("Build contains no artifacts");
         }
 
-        if (!metaFileContents.startsWith("chroots=")) {
-            return null;
-        }
-        return StringUtil.split(StringUtil.split(metaFileContents, "=").get(1), ",");
+        return chroots;
     }
 
 }

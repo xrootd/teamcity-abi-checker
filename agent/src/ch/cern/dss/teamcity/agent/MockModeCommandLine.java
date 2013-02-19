@@ -52,14 +52,7 @@ public class MockModeCommandLine extends AbiCheckerCommandLine {
         super(context, logger);
 
         logger.message("Setting up mock context");
-
-        File mockMetaDirectory = new File(context.getNewArtifactsDirectory(), AbiCheckerConstants.MOCK_META_DIRECTORY);
-        if (!mockMetaDirectory.exists() || !mockMetaDirectory.isDirectory()) {
-            throw new RunBuildException("Cannot setup mock context: directory not found: "
-                    + mockMetaDirectory);
-        }
-
-        mockEnvironmentBuilder = new MockEnvironmentBuilder(mockMetaDirectory, logger);
+        mockEnvironmentBuilder = new MockEnvironmentBuilder(context, logger);
         mockEnvironmentBuilder.setup();
 
         // Write xml descriptor for each chroot

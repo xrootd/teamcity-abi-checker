@@ -37,7 +37,7 @@ public class CompatibilityReportPageBuilder {
      */
     public CompatibilityReportPageBuilder(Map.Entry<String, String> reportPages) {
         reportPages = new AbstractMap.SimpleEntry<String, String>
-                (stripCss(reportPages.getKey()), stripCss(reportPages.getValue()));
+                (process(reportPages.getKey()), process(reportPages.getValue()));
         this.reportPages = new HashMap<String, Map.Entry<String, String>>();
         this.reportPages.put("default", reportPages);
     }
@@ -52,10 +52,18 @@ public class CompatibilityReportPageBuilder {
 
         for (Map.Entry e : reportPages.entrySet()) {
             replacedPages.put(e.getKey().toString(), new AbstractMap.SimpleEntry<String, String>
-                    (stripCss(((Map.Entry) e.getValue()).getKey().toString()),
-                            stripCss(((Map.Entry) e.getValue()).getValue().toString())));
+                    (process(((Map.Entry) e.getValue()).getKey().toString(),e.getKey().toString()),
+                            process(((Map.Entry) e.getValue()).getValue().toString(), e.getKey().toString())));
         }
         this.reportPages = replacedPages;
+    }
+
+    private String process(String reportPage) {
+        return stripCss(reportPage);
+    }
+
+    private String process(String reportPage, String chrootName) {
+        return stripCss(fixDocumentIds(reportPage, chrootName));
     }
 
     /**
@@ -83,6 +91,22 @@ public class CompatibilityReportPageBuilder {
         matcher = pattern.matcher(reportPage);
         if (matcher.find()) {
             reportPage = reportPage.replace(matcher.group(0), "");
+        }
+
+        return reportPage;
+    }
+
+    private String fixDocumentIds(String reportPage, String chrootName) {
+        Pattern pattern = Pattern.compile(".*id=[\"\'](c_\\d*)[\"\'].*");
+        Matcher matcher = pattern.matcher(reportPage);
+        while (matcher.find()) {
+            reportPage = reportPage.replace(matcher.group(1), chrootName + "-" + matcher.group(1));
+        }
+
+        pattern = Pattern.compile("\\(this,\\s'(c_\\d*)'\\)");
+        matcher = pattern.matcher(reportPage);
+        while (matcher.find()) {
+            reportPage = reportPage.replace(matcher.group(1), chrootName + "-" + matcher.group(1));
         }
 
         return reportPage;

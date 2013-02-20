@@ -11,6 +11,7 @@ Packager:       Justin Salmon <jsalmon@cern.ch>
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 BuildRequires:  ant >= 1.7.1
+BuildRequires:  teamcity-server >= 7.0.1
 
 %description
 TeamCity plugin for building checking ABI compatibility with previous builds

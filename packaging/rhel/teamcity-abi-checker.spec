@@ -20,7 +20,7 @@ TeamCity plugin for building checking ABI compatibility with previous builds
 %setup
 
 %build
-ant dist -Dpath.variable.teamcitydistribution=/opt/teamcity
+ant dist -Dpath.variable.teamcitydistribution=/opt/teamcity/server
 
 %install
 mkdir -p %{buildroot}%plugindir
